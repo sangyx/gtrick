@@ -1,2 +1,2 @@
-# graph-tricks
+# gtricks
 Bag of tricks for graph neural networks.
