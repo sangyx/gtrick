@@ -1,2 +1,11 @@
 # gtricks
-Bag of tricks for graph neural networks.
+Bag of Tricks for Graph Neural Networks.
+
+## Tricks
+* VirtualNode
+* Position Encoding
+* FLAG
+* DropEdge
+
+
+## Benchmark
