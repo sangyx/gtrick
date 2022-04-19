@@ -129,5 +129,8 @@ dmypy.json
 .pyre/
 
 # VSCode files
-.vscode
-.history
+.vscode/
+.history/
+
+# OGB
+ogb/

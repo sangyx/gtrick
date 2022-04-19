@@ -1,5 +1,6 @@
-# gtricks
-Bag of Tricks for Graph Neural Networks.
+# gtrick: Bag of Tricks for Graph Neural Networks
+
+> Trick is all you need
 
 ## Tricks
 * VirtualNode
