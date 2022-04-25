@@ -89,11 +89,15 @@ class Logger(object):
             result = torch.tensor(self.results[run])
             
             argidx = self.arg_f(result[:, 1]).item()
+
+            print("-" * 80)
             print(f'Run {run + 1:02d}:')
             print(f'Best Train: {self.f(result[:, 0]):.4f}')
             print(f'Best Valid: {self.f(result[:, 1]):.4f}')
             print(f'  Final Train: {result[argidx, 0]:.4f}')
             print(f'  Final Test: {result[argidx, 2]:.4f}')
+            print("-" * 80)
+            print()
         else:
 
             best_results = []
@@ -107,6 +111,7 @@ class Logger(object):
 
             best_result = torch.tensor(best_results)
 
+            print("-" * 80)
             print(f'All runs:')
             r = best_result[:, 0]
             print(f'Best Train: {r.mean():.4f} ± {r.std():.4f}')
@@ -116,3 +121,5 @@ class Logger(object):
             print(f'  Final Train: {r.mean():.4f} ± {r.std():.4f}')
             r = best_result[:, 3]
             print(f'  Final Test: {r.mean():.4f} ± {r.std():.4f}')
+            print("-" * 80)
+            print()

@@ -225,11 +225,11 @@ def main():
     if args.model == 'gcn':
         model = GCN(num_features, args.hidden_channels,
                     args.hidden_channels, args.num_layers,
-                    args.dropout, dataset.task_type)
+                    args.dropout)
     elif args.model == 'sage':
         model = SAGE(num_features, args.hidden_channels,
                      args.hidden_channels, args.num_layers,
-                     args.dropout, dataset.task_type)
+                     args.dropout)
 
     run_link_pred(args, model, dataset)
 

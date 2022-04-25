@@ -4,20 +4,10 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from ogb.graphproppred import DglGraphPropPredDataset, Evaluator
-
-import dgl
-
 from utils import Logger, EarlyStopping
-from model import EGCN
+from model import EGCN, EGIN
 
-
-def collate_dgl(samples):
-    graphs, labels = map(list, zip(*samples))
-    batched_graph = dgl.batch(graphs)
-    labels = torch.stack(labels)
-
-    return batched_graph, labels
+from ogb.graphproppred import DglGraphPropPredDataset, Evaluator, collate_dgl
 
 
 def train(model, device, loader, optimizer):
@@ -61,7 +51,7 @@ def eval(model, device, loader, evaluator, eval_metric):
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
 
-    input_dict = {"y_true": y_true, "y_pred": y_pred}
+    input_dict = {'y_true': y_true, 'y_pred': y_pred}
 
     return evaluator.eval(input_dict)[eval_metric]
 
@@ -82,11 +72,11 @@ def run_graph_pred(args, model, dataset):
 
     split_idx = dataset.get_idx_split()
 
-    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size,
+    train_loader = DataLoader(dataset[split_idx['train']], batch_size=args.batch_size,
                               shuffle=True, num_workers=args.num_workers, collate_fn=collate_dgl)
-    valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size,
+    valid_loader = DataLoader(dataset[split_idx['valid']], batch_size=args.batch_size,
                               shuffle=False, num_workers=args.num_workers, collate_fn=collate_dgl)
-    test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size,
+    test_loader = DataLoader(dataset[split_idx['test']], batch_size=args.batch_size,
                              shuffle=False, num_workers=args.num_workers, collate_fn=collate_dgl)
 
     logger = Logger(args.runs, mode='max')
@@ -130,20 +120,21 @@ def run_graph_pred(args, model, dataset):
 def main():
     parser = argparse.ArgumentParser(
         description='train graph property prediction')
-    parser.add_argument("--dataset", type=str, default="ogbg-molhiv",
-                        choices=["ogbg-molhiv"])
-    parser.add_argument("--dataset_path", type=str, default="/home/ubuntu/.dgl_dataset",
-                        help="path to dataset")
-    parser.add_argument('--device', type=int, default=0)
+    parser.add_argument('--dataset', type=str, default='ogbg-molhiv',
+                        choices=['ogbg-molhiv'])
+    parser.add_argument('--dataset_path', type=str, default='/home/ubuntu/.dgl_dataset',
+                        help='path to dataset')
+    parser.add_argument('--device', type=int, default=1)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--num_layers', type=int, default=5)
-    parser.add_argument('--hidden_channels', type=int, default=256)
+    parser.add_argument('--hidden_channels', type=int, default=300)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument("--batch_size", type=int, default=128,
-                        help="batch size")
+    parser.add_argument('--batch_size', type=int, default=32,
+                        help='batch size')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
+    parser.add_argument('--model', type=str, default='gin')
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--runs', type=int, default=5)
     parser.add_argument('--patience', type=int, default=30)
@@ -153,9 +144,13 @@ def main():
     dataset = DglGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
 
-    model = EGCN(args.hidden_channels,
-                 dataset.num_tasks, args.num_layers,
-                 args.dropout, dataset.task_type)
+    if args.model == 'gin':
+        model = EGIN(args.hidden_channels,
+                     dataset.num_tasks, args.num_layers,
+                     args.dropout)
+    elif args.model == 'gcn':
+        model = EGCN(args.hidden_channels, dataset.num_tasks,
+                     args.num_layers, args.dropout)
 
     run_graph_pred(args, model, dataset)
 

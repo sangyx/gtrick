@@ -10,40 +10,56 @@ from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
 class EGINConv(nn.Module):
     def __init__(self, emb_dim):
         '''
-            emb_dim (int): node embedding dimensionality
+        emb_dim (int): node embedding dimensionality
         '''
 
         super(EGINConv, self).__init__()
 
-        self.mlp = nn.Sequential(nn.Linear(emb_dim, emb_dim),
-                                 nn.BatchNorm1d(emb_dim),
-                                 nn.ReLU(),
-                                 nn.Linear(emb_dim, emb_dim))
+        self.mlp = nn.Sequential(
+            nn.Linear(emb_dim, 2 * emb_dim),
+            nn.BatchNorm1d(2 * emb_dim),
+            nn.ReLU(),
+            nn.Linear(2 * emb_dim, emb_dim)
+        )
         self.eps = nn.Parameter(torch.Tensor([0]))
+        self.edge_encoder = BondEncoder(emb_dim)
 
-    def forward(self, g, x, edge_embedding):
+    def reset_parameters(self):
+        for c in self.mlp.children():
+            if hasattr(c, 'reset_parameters'):
+                c.reset_parameters()
+        nn.init.constant_(self.eps.data, 0)
+        for emb in self.edge_encoder.bond_embedding_list:
+            nn.init.xavier_uniform_(emb.weight.data)
+
+    def forward(self, g, x, ex):
         with g.local_scope():
+            eh = self.edge_encoder(ex)
             g.ndata['x'] = x
             g.apply_edges(fn.copy_u('x', 'm'))
-            g.edata['m'] = F.relu(g.edata['m'] + edge_embedding)
+            g.edata['m'] = F.relu(g.edata['m'] + eh)
             g.update_all(fn.copy_e('m', 'm'), fn.sum('m', 'new_x'))
             out = self.mlp((1 + self.eps) * x + g.ndata['new_x'])
 
             return out
 
 class EGCNConv(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, emb_dim):
         super(EGCNConv, self).__init__()
 
-        self.linear = nn.Linear(in_channels, in_channels)
-        self.root_emb = nn.Embedding(1, in_channels)
+        self.linear = nn.Linear(emb_dim, emb_dim)
+        self.root_emb = nn.Embedding(1, emb_dim)
+        self.edge_encoder = BondEncoder(emb_dim)
     
     def reset_parameters(self):
         self.linear.reset_parameters()
         self.root_emb.reset_parameters()
+        for emb in self.edge_encoder.bond_embedding_list:
+            nn.init.xavier_uniform_(emb.weight.data)
 
-    def forward(self, g, x, edge_embedding):
+    def forward(self, g, x, ex):
         with g.local_scope():
+            eh = self.edge_encoder(ex)
             x = self.linear(x)
 
             # Molecular graphs are undirected
@@ -57,7 +73,7 @@ class EGCNConv(nn.Module):
             g.apply_edges(fn.copy_u('x', 'm'))
 
             g.edata['m'] = g.edata['norm'] * \
-                F.relu(g.edata['m'] + edge_embedding)
+                F.relu(g.edata['m'] + eh)
             g.update_all(fn.copy_e('m', 'm'), fn.sum('m', 'new_x'))
             out = g.ndata['new_x'] + \
                 F.relu(x + self.root_emb.weight) * 1. / degs.view(-1, 1)
@@ -68,48 +84,104 @@ class EGCNConv(nn.Module):
 class EGCN(nn.Module):
 
     def __init__(self, hidden_channels, out_channels, num_layers,
-                 dropout, task_type):
+                 dropout):
 
         super(EGCN, self).__init__()
 
         self.node_encoder = AtomEncoder(hidden_channels)
-        self.edge_encoder = BondEncoder(hidden_channels)
 
         self.convs = nn.ModuleList()
+        self.bns = nn.ModuleList()
 
-        for _ in range(num_layers - 1):
+        for i in range(num_layers):
             self.convs.append(
                 EGCNConv(hidden_channels))
-
-        self.convs.append(EGCNConv(hidden_channels))
+            if i != num_layers - 1:
+                self.bns.append(nn.BatchNorm1d(hidden_channels))
 
         self.dropout = dropout
-
-        self.task_type = task_type
 
         self.pool = AvgPooling()
 
         self.out = nn.Linear(hidden_channels, out_channels)
 
     def reset_parameters(self):
-        for conv in self.convs:
-            conv.reset_parameters()
-        # for bn in self.bns:
-        #     bn.reset_parameters()
+        for emb in self.node_encoder.atom_embedding_list:
+            torch.nn.init.xavier_uniform_(emb.weight.data)
+
+        num_layers = len(self.convs)
+
+        for i in range(num_layers):
+            self.convs[i].reset_parameters()
+            if i != num_layers - 1:
+                self.bns[i].reset_parameters()
 
         self.out.reset_parameters()
 
     def forward(self, g, x, ex):
         h = self.node_encoder(x)
-        eh = self.edge_encoder(ex)
+
+        for i, conv in enumerate(self.convs[:-1]):
+            h = conv(g, h, ex)
+            h = self.bns[i](h)
+            h = F.relu(h)
+            h = F.dropout(h, p=self.dropout, training=self.training)
+        h = self.convs[-1](g, h, ex)
+        h = F.dropout(h, self.dropout, training=self.training)
+
+        h = self.pool(g, h)
+        h = self.out(h)
+
+        return h
+
+
+class EGIN(nn.Module):
+    def __init__(self, hidden_channels, out_channels, num_layers,
+                 dropout):
+
+        super(EGIN, self).__init__()
+
+        self.node_encoder = AtomEncoder(hidden_channels)
+
+        self.convs = nn.ModuleList()
+        self.bns = nn.ModuleList()
+
+        for i in range(num_layers):
+            self.convs.append(
+                EGINConv(hidden_channels))
+            if i != num_layers - 1:
+                self.bns.append(nn.BatchNorm1d(hidden_channels))
+
+        self.dropout = dropout
+
+        self.pool = AvgPooling()
+
+        self.out = nn.Linear(hidden_channels, out_channels)
+
+    def reset_parameters(self):
+        for emb in self.node_encoder.atom_embedding_list:
+            nn.init.xavier_uniform_(emb.weight.data)
+            
+        num_layers = len(self.convs)
+
+        for i in range(num_layers):
+            self.convs[i].reset_parameters()
+            if i != num_layers - 1:
+                self.bns[i].reset_parameters()
+
+        self.out.reset_parameters()
+
+    def forward(self, g, x, ex):
+        h = self.node_encoder(x)
 
         # return g, h, eh
         for i, conv in enumerate(self.convs[:-1]):
-            h = conv(g, h, eh)
-            # h = self.bns[i](h)
+            h = conv(g, h, ex)
+            h = self.bns[i](h)
             h = F.relu(h)
             h = F.dropout(h, p=self.dropout, training=self.training)
-        h = self.convs[-1](g, h, eh)
+        h = self.convs[-1](g, h, ex)
+        h = F.dropout(h, self.dropout, training=self.training)
 
         h = self.pool(g, h)
         h = self.out(h)
@@ -119,7 +191,7 @@ class EGCN(nn.Module):
 
 class GCN(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout, task_type):
+                 dropout):
         super(GCN, self).__init__()
 
         self.convs = nn.ModuleList()
@@ -134,7 +206,6 @@ class GCN(nn.Module):
 
         self.dropout = dropout
 
-        self.task_type = task_type
 
     def reset_parameters(self):
         for conv in self.convs:
@@ -155,7 +226,7 @@ class GCN(nn.Module):
 
 class SAGE(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout, task_type):
+                 dropout):
         super(SAGE, self).__init__()
 
         self.convs = nn.ModuleList()
@@ -168,7 +239,6 @@ class SAGE(nn.Module):
         self.convs.append(SAGEConv(hidden_channels, out_channels, 'mean'))
 
         self.dropout = dropout
-        self.task_type = task_type
 
     def reset_parameters(self):
         for conv in self.convs:
