@@ -1,13 +1,15 @@
 import argparse
 
+from ogb.graphproppred import PygGraphPropPredDataset, Evaluator
+
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch_geometric.loader import DataLoader
 
 from utils import Logger, EarlyStopping
 from model import EGCN, EGIN
 
-from ogb.graphproppred import DglGraphPropPredDataset, Evaluator, collate_dgl
+from tqdm.auto import tqdm
 
 
 def train(model, device, loader, optimizer):
@@ -16,14 +18,16 @@ def train(model, device, loader, optimizer):
     total_loss = 0
     total = 0
 
-    for step, batch in enumerate(loader):
-        g, y = batch
-        g, y = g.to(device), y.to(device)
+    for batch in tqdm(loader, desc='Train'):
+        batch = batch.to(device)
 
-        yh = model(g, g.ndata['feat'], g.edata['feat'])
+        yh = model(batch)
         optimizer.zero_grad()
 
-        loss = F.mse_loss(yh.float(), y.float())
+        y = batch.y
+
+        # loss = F.mse_loss(yh.float(), y.float())
+        loss = F.binary_cross_entropy_with_logits(yh.float(), y.float())
         loss.backward()
         optimizer.step()
 
@@ -39,11 +43,12 @@ def eval(model, device, loader, evaluator, eval_metric):
     y_true = []
     y_pred = []
 
-    for step, batch in enumerate(loader):
-        g, y = batch
-        g, y = g.to(device), y.to(device)
+    for batch in tqdm(loader, desc='Eval '):
+        batch = batch.to(device)
 
-        yh = model(g, g.ndata['feat'], g.edata['feat'])
+        yh = model(batch)
+
+        y = batch.y
 
         y_true.append(y.view(yh.shape).detach().cpu())
         y_pred.append(yh.detach().cpu())
@@ -62,26 +67,22 @@ def run_graph_pred(args, model, dataset):
 
     model.to(device)
 
-    # add self-loop
-    for i in range(len(dataset)):
-        dataset.graphs[i] = dataset.graphs[i].remove_self_loop(
-        ).add_self_loop()
-
     # dataset = DglNodePropPredDataset(name=args.dataset, root=args.dataset_path)
     evaluator = Evaluator(name=args.dataset)
 
     split_idx = dataset.get_idx_split()
 
     train_loader = DataLoader(dataset[split_idx['train']], batch_size=args.batch_size,
-                              shuffle=True, num_workers=args.num_workers, collate_fn=collate_dgl)
+                              shuffle=True, num_workers=args.num_workers)
     valid_loader = DataLoader(dataset[split_idx['valid']], batch_size=args.batch_size,
-                              shuffle=False, num_workers=args.num_workers, collate_fn=collate_dgl)
+                              shuffle=False, num_workers=args.num_workers)
     test_loader = DataLoader(dataset[split_idx['test']], batch_size=args.batch_size,
-                             shuffle=False, num_workers=args.num_workers, collate_fn=collate_dgl)
+                             shuffle=False, num_workers=args.num_workers)
 
     logger = Logger(args.runs, mode='max')
 
     for run in range(args.runs):
+        print('\nRun {}'.format(run + 1))
         model.reset_parameters()
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
@@ -89,6 +90,7 @@ def run_graph_pred(args, model, dataset):
             patience=args.patience, verbose=True, mode='max')
 
         for epoch in range(1, 1 + args.epochs):
+            print('epoch {}'.format(epoch))
             loss = train(model, device, train_loader, optimizer)
 
             train_metric = eval(model, device, train_loader,
@@ -103,12 +105,12 @@ def run_graph_pred(args, model, dataset):
             logger.add_result(run, result)
 
             if epoch % args.log_steps == 0:
-                print(f'Run: {run + 1:02d}, '
-                      f'Epoch: {epoch:02d}, '
+                print(
                       f'Loss: {loss:.4f}, '
                       f'Train: {train_metric:.4f}, '
                       f'Valid: {valid_metric:.4f} '
                       f'Test: {test_metric:.4f}')
+                print()
 
             if early_stopping(valid_metric, model):
                 break
@@ -141,7 +143,7 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    dataset = DglGraphPropPredDataset(
+    dataset = PygGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
 
     if args.model == 'gin':

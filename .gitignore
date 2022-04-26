@@ -134,3 +134,6 @@ dmypy.json
 
 # OGB
 ogb/
+
+# log
+log/

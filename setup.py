@@ -19,8 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "torch",
-        "dgl"
+        "torch"
     ],
     python_requires=">=3",
 )
