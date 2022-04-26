@@ -1,15 +1,18 @@
 # gtrick: Bag of Tricks for Graph Neural Networks
 
-> Trick is all you need
+> Trick is all you need.
 
 ## Tricks
 * VirtualNode: [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf)
+  * Example:  [VirtualNode(DGL).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb), [VirtualNode(PyG).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb)
 * Position Encoding
 * FLAG
 * DropEdge
 
 
 ## Benchmark
+
+The results listed below are implemented by DGL. You can find the results of PyG in [PyG Benchmark](benchmark/pyg/README.md).
 
 ### Virtual Node
  
