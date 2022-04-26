@@ -3,11 +3,10 @@
 > Trick is all you need.
 
 ## Tricks
-* VirtualNode: [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf)
-  * Example:  [VirtualNode(DGL).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb), [VirtualNode(PyG).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb)
-* Position Encoding
-* FLAG
-* DropEdge
+
+|     Trick    | Example(DGL) | Example(PyG) | Reference |
+|:------------:|:------------:|:------------:|:-----:|
+| Virtual Node |  [VirtualNode(DGL).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb) | [VirtualNode(PyG).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb) | [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf) |
 
 
 ## Benchmark
