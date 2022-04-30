@@ -2,19 +2,21 @@
 
 > Trick is all you need.
 
-## Tricks
+## Trick
 
-|     Trick    | Example(DGL) | Example(PyG) | Reference |
+|     Trick    | Example | Task | Reference |
 |:------------:|:------------:|:------------:|:-----:|
-| Virtual Node |  [VirtualNode(DGL).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb) | [VirtualNode(PyG).ipynb](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb) | [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf) |
-
+| Virtual Node |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb), [PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb) | graph | [Neural Message Passing for Quantum Chemistry](https://arxiv.org/pdf/1704.01212.pdf) |
+| FLAG |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/FLAG.ipynb), [PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/FLAG.ipynb) | node, graph | [Robust Optimization as Data Augmentation for Large-scale Graphs](https://arxiv.org/abs/2010.09891) |
 
 ## Benchmark
 
-The results listed below are implemented by DGL. You can find the results of PyG in [PyG Benchmark](benchmark/pyg/README.md).
+The results listed below are implemented by PyG. You can find the results of DGL in [DGL Benchmark](benchmark/dgl/README.md).
 
-### Virtual Node
- 
-| Dataset         |       GCN       | GCN + Virtual Node |       GIN       | GIN + Virtual Node |
-|:---------------:|:---------------:|:------------------:|:---------------:|:------------------:|
-|   ogbg-molhiv   | 0.7683 ± 0.0107 |   0.7330 ± 0.0293  | 0.7708 ± 0.0138 |   0.7673 ± 0.0082  |
+### Graph Property Prediction: ogbg-molhiv
+
+|     Trick     |       GCN       |       GIN       |
+|:-------------:|:---------------:|:---------------:|
+|       —       | 0.7690 ± 0.0053 | 0.7778 ± 0.0130 |
+| +Virtual Node | 0.7581 ± 0.0135 | 0.7713 ± 0.0036 |
+|     +FLAG     | 0.7683 ± 0.0136 | 0.7736 ± 0.0050 |
