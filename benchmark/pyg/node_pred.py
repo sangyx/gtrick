@@ -1,6 +1,8 @@
 import argparse
 
-from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
+from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
+
+import torch_geometric.transforms as T
 
 import torch
 import torch.nn.functional as F
@@ -9,11 +11,11 @@ from utils import Logger, EarlyStopping
 from model import GCN, SAGE
 
 
-def train(model, g, x, y, train_idx, optimizer, task_type):
+def train(model, data, train_idx, optimizer, task_type):
     model.train()
-
+    y = data.y
     optimizer.zero_grad()
-    out = model(g, x)
+    out = model(data.x, data.adj_t)
     if task_type == 'binary classification':
         loss = F.binary_cross_entropy_with_logits(
             out[train_idx], y.squeeze(1)[train_idx])
@@ -26,10 +28,11 @@ def train(model, g, x, y, train_idx, optimizer, task_type):
 
 
 @torch.no_grad()
-def test(model, g, x, y, split_idx, evaluator, eval_metric):
+def test(model, data, split_idx, evaluator, eval_metric):
     model.eval()
 
-    out = model(g, x)
+    y = data.y
+    out = model(data.x, data.adj_t)
     y_pred = out.argmax(dim=-1, keepdim=True)
 
     train_metric = evaluator.eval({
@@ -57,23 +60,9 @@ def run_node_pred(args, model, dataset):
     # dataset = DglNodePropPredDataset(name=args.dataset, root=args.dataset_path)
     evaluator = Evaluator(name=args.dataset)
 
-    g, y = dataset[0]
-
-    # add reverse edges
-    srcs, dsts = g.all_edges()
-    g.add_edges(dsts, srcs)
-
-    # add self-loop
-    print(f"Total edges before adding self-loop {g.number_of_edges()}")
-    g = g.remove_self_loop().add_self_loop()
-    print(f"Total edges after adding self-loop {g.number_of_edges()}")
-
-    g, y = g.to(device), y.to(device)
-
-    if args.dataset == 'ogbn-proteins':
-        x = g.ndata['species']
-    else:
-        x = g.ndata['feat']
+    data = dataset[0]
+    data.adj_t = data.adj_t.to_symmetric()
+    data = data.to(device)
 
     split_idx = dataset.get_idx_split()
     train_idx = split_idx['train']
@@ -87,9 +76,9 @@ def run_node_pred(args, model, dataset):
             patience=args.patience, verbose=True, mode='max')
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(model, g, x, y, train_idx,
+            loss = train(model, data, train_idx,
                          optimizer, dataset.task_type)
-            result = test(model, g, x, y, split_idx,
+            result = test(model, data, split_idx,
                           evaluator, dataset.eval_metric)
             logger.add_result(run, result)
 
@@ -130,10 +119,10 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    dataset = DglNodePropPredDataset(name=args.dataset, root=args.dataset_path)
-    g, _ = dataset[0]
+    dataset = PygNodePropPredDataset(name=args.dataset, transform=T.ToSparseTensor(), root=args.dataset_path)
+    data = dataset[0]
 
-    num_features = g.ndata['feat'].shape[1]
+    num_features = data.x.shape[1]
 
     if args.model == 'gcn':
         model = GCN(num_features, args.hidden_channels,

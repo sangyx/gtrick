@@ -2,6 +2,11 @@
 
 ### Graph Property Prediction: ogbg-molhiv
 
+run the baseline code:
+```bash
+python graph_pred.py --model gin/gcn
+```
+
 |     Trick     |       GCN       |       GIN       |
 |:-------------:|:---------------:|:---------------:|
 |       —       | 0.7690 ± 0.0053 | 0.7778 ± 0.0130 |

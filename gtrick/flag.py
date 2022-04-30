@@ -17,6 +17,9 @@ class FLAG:
         perturb_shape = (num_nodes, self.emb_dim)
         device = y.device
 
+        if mask is not None:
+            y = y[mask]
+
         if self.mag > 0:
             perturb = torch.FloatTensor(*perturb_shape).uniform_(-1, 1).to(device)
             perturb = perturb * self.mag / math.sqrt(perturb_shape[-1])
