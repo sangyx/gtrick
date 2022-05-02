@@ -20,3 +20,9 @@ The results listed below are implemented by PyG. You can find the results of DGL
 |       —       | 0.7690 ± 0.0053 | 0.7778 ± 0.0130 |
 | +Virtual Node | 0.7581 ± 0.0135 | 0.7713 ± 0.0036 |
 |     +FLAG     | 0.7683 ± 0.0136 | 0.7736 ± 0.0050 |
+
+### Node Property Prediction: ogbn-arxiv
+|     Trick     |       GCN       |       SAGE      |
+|:-------------:|:---------------:|:---------------:|
+|       —       | 0.7152 ± 0.0024 | 0.7153 ± 0.0028 |
+|     +FLAG     | 0.7187 ± 0.0020 | 0.7206 ± 0.0013 |

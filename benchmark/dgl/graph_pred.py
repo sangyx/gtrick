@@ -1,5 +1,7 @@
 import argparse
 
+from ogb.graphproppred import DglGraphPropPredDataset, Evaluator, collate_dgl
+
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
@@ -8,8 +10,6 @@ from utils import Logger, EarlyStopping
 from model import EGCN, EGIN
 
 from tqdm.auto import tqdm
-
-from ogb.graphproppred import DglGraphPropPredDataset, Evaluator, collate_dgl
 
 
 def train(model, device, loader, optimizer):

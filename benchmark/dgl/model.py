@@ -196,12 +196,12 @@ class GCN(nn.Module):
 
         self.convs = nn.ModuleList()
         self.convs.append(GraphConv(in_channels, hidden_channels))
-        # self.bns = nn.ModuleList()
-        # self.bns.append(nn.BatchNorm1d(hidden_channels))
+        self.bns = nn.ModuleList()
+        self.bns.append(nn.BatchNorm1d(hidden_channels))
         for _ in range(num_layers - 2):
             self.convs.append(
                 GraphConv(hidden_channels, hidden_channels))
-            # self.bns.append(nn.BatchNorm1d(hidden_channels))
+            self.bns.append(nn.BatchNorm1d(hidden_channels))
         self.convs.append(GraphConv(hidden_channels, out_channels))
 
         self.dropout = dropout
@@ -210,13 +210,13 @@ class GCN(nn.Module):
     def reset_parameters(self):
         for conv in self.convs:
             conv.reset_parameters()
-        # for bn in self.bns:
-        #     bn.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
 
     def forward(self, g, x):
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(g, x)
-            # x = self.bns[i](x)
+            x = self.bns[i](x)
             x = F.relu(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
         x = self.convs[-1](g, x)
