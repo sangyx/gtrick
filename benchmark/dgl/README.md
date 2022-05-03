@@ -11,7 +11,7 @@ python graph_pred.py --model gin/gcn
 |:-------------:|:---------------:|:---------------:|
 |       —       | 0.7683 ± 0.0107 | 0.7708 ± 0.0138 |
 | +Virtual Node | 0.7330 ± 0.0293 | 0.7673 ± 0.0082 |
-|     +FLAG     | 0.7543 ± 0.0083 | 0.7592 ± 0.0213 |
+|     +FLAG     | 0.7588 ± 0.0098 | 0.7652 ± 0.0161 |
 
 ### Node Property Prediction: ogbn-arxiv
 |     Trick     |       GCN       |       SAGE      |
