@@ -1,8 +1,24 @@
+"""Module for Free Large-scale Adversarial Augmentation on Graphs."""
+
 import torch
 import math
 
+'''
+The code are adapted from
+https://github.com/devnkong/FLAG
+'''
+
 class FLAG:
     def __init__(self, emb_dim, loss_func, optimizer, m=3, step_size=1e-3, mag=-1) -> None:
+        '''
+            emb_dim (int): Node feature dim.
+            loss_func (torch.nn.Module): Loss function.
+            optimizer (torch.optim.Optimizer) : Optimizer.
+            m (int): Ascent steps. Train the same minibatch m times. Defaults: 3.
+            step_size (float): Ascent step size. If mag <= 0, perturb is initialized from uniform distribution [-step_size, step_size]. Defaults: 1e-3.
+            mag (float): If mag > 0, it controls the max norm of perturb. Defaults: -1.
+        '''
+
         self.emb_dim = emb_dim
         self.loss_func = loss_func
         self.optimizer = optimizer
@@ -36,7 +52,7 @@ class FLAG:
                 perturb_data_norm = torch.norm(perturb_data, dim=-1).detach()
                 exceed_mask = (perturb_data_norm > self.mag).to(perturb_data)
                 reweights = (self.mag / perturb_data_norm * exceed_mask +
-                            (1-exceed_mask)).unsqueeze(-1)
+                            (1 - exceed_mask)).unsqueeze(-1)
                 perturb_data = (perturb_data * reweights).detach()
 
             perturb.data = perturb_data.data

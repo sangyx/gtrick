@@ -1,21 +1,25 @@
+"""PyG Module for Virtual Node"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from torch_geometric.nn import global_add_pool
 
+'''
+The code are adapted from
+https://github.com/snap-stanford/ogb/tree/master/examples/graphproppred
+'''
 
-# Virtual GNN to generate node embedding
+
 class VirtualNode(nn.Module):
-    """
-    Output:
-        node representations
-    """
 
     def __init__(self, in_feats, out_feats, dropout=0.5, residual=False):
         '''
-            num_layers (int): number of GNN message passing layers
-            emb_dim (int): node embedding dimensionality
+            in_feats (int): Feature size before conv layer.
+            out_feats (int): Feature size after conv layer.
+            dropout (float): Dropout rate on virtual node embedding. Defaults: 0.5.
+            residual (bool): If True, use residual connection. Defaults: False.
         '''
 
         super(VirtualNode, self).__init__()
@@ -40,25 +44,26 @@ class VirtualNode(nn.Module):
             nn.Linear(2 * out_feats, out_feats),
             nn.BatchNorm1d(out_feats),
             nn.ReLU())
-    
+
     def reset_parameters(self):
         if not isinstance(self.linear, nn.Identity):
             self.linear.reset_parameters()
-            
+
         for c in self.mlp_vn.children():
             if hasattr(c, 'reset_parameters'):
                 c.reset_parameters()
         nn.init.constant_(self.vn_emb.weight.data, 0)
-    
+
     def update_node_emb(self, x, edge_index, batch, vx=None):
         # Virtual node embeddings for graphs
         if vx is None:
-            vx = self.vn_emb(torch.zeros(batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
+            vx = self.vn_emb(torch.zeros(
+                batch[-1].item() + 1).to(edge_index.dtype).to(edge_index.device))
 
         # Add message from virtual nodes to graph nodes
         h = x + vx[batch]
         return h, vx
-    
+
     def update_vn_emb(self, x, batch, vx):
         # Add message from graph nodes to virtual nodes
         vx = self.linear(vx)
