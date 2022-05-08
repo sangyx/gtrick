@@ -78,12 +78,12 @@ class EGCNConv(MessagePassing):
         return aggr_out
 
 
-class EGCN(nn.Module):
+class EGNN(nn.Module):
 
     def __init__(self, hidden_channels, out_channels, num_layers,
-                 dropout):
+                 dropout, conv_type):
 
-        super(EGCN, self).__init__()
+        super(EGNN, self).__init__()
 
         self.node_encoder = AtomEncoder(hidden_channels)
 
@@ -91,10 +91,15 @@ class EGCN(nn.Module):
         self.bns = nn.ModuleList()
 
         for i in range(num_layers):
-            self.convs.append(
-                EGCNConv(hidden_channels))
+            if conv_type == 'gin':
+                self.convs.append(
+                    EGINConv(hidden_channels))
+            elif conv_type == 'gcn':
+                self.convs.append(
+                    EGCNConv(hidden_channels))
+
             if i != num_layers - 1:
-                self.bns.append(nn.BatchNorm1d(hidden_channels))
+                self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
 
         self.dropout = dropout
 
@@ -105,7 +110,6 @@ class EGCN(nn.Module):
             torch.nn.init.xavier_uniform_(emb.weight.data)
 
         num_layers = len(self.convs)
-
         for i in range(num_layers):
             self.convs[i].reset_parameters()
             if i != num_layers - 1:
@@ -118,120 +122,118 @@ class EGCN(nn.Module):
 
         h = self.node_encoder(x)
 
+        vx = None
+
         for i, conv in enumerate(self.convs[:-1]):
             h = conv(h, edge_index, edge_attr)
             h = self.bns[i](h)
             h = F.relu(h)
             h = F.dropout(h, p=self.dropout, training=self.training)
+
         h = self.convs[-1](h, edge_index, edge_attr)
-        h = F.dropout(h, self.dropout, training=self.training)
+        h = F.dropout(h, self.dropout, training = self.training)
 
         h = global_mean_pool(h, batch)
+
         h = self.out(h)
 
         return h
 
 
-class EGIN(nn.Module):
-    def __init__(self, hidden_channels, out_channels, num_layers,
-                 dropout):
+# class GCN(torch.nn.Module):
+#     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+#                  dropout):
+#         super(GCN, self).__init__()
 
-        super(EGIN, self).__init__()
+#         self.convs = torch.nn.ModuleList()
+#         self.convs.append(GCNConv(in_channels, hidden_channels, cached=True))
+#         self.bns = torch.nn.ModuleList()
+#         self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+#         for _ in range(num_layers - 2):
+#             self.convs.append(
+#                 GCNConv(hidden_channels, hidden_channels, cached=True))
+#             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+#         self.convs.append(GCNConv(hidden_channels, out_channels, cached=True))
 
-        self.node_encoder = AtomEncoder(hidden_channels)
+#         self.dropout = dropout
 
-        self.convs = nn.ModuleList()
-        self.bns = nn.ModuleList()
+#     def reset_parameters(self):
+#         for conv in self.convs:
+#             conv.reset_parameters()
+#         for bn in self.bns:
+#             bn.reset_parameters()
+
+#     def forward(self, x, adj_t):
+#         for i, conv in enumerate(self.convs[:-1]):
+#             x = conv(x, adj_t)
+#             x = self.bns[i](x)
+#             x = F.relu(x)
+#             x = F.dropout(x, p=self.dropout, training=self.training)
+#         x = self.convs[-1](x, adj_t)
+#         return x
+
+
+# class SAGE(torch.nn.Module):
+#     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+#                  dropout):
+#         super(SAGE, self).__init__()
+
+#         self.convs = torch.nn.ModuleList()
+#         self.convs.append(SAGEConv(in_channels, hidden_channels))
+#         self.bns = torch.nn.ModuleList()
+#         self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+#         for _ in range(num_layers - 2):
+#             self.convs.append(SAGEConv(hidden_channels, hidden_channels))
+#             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+#         self.convs.append(SAGEConv(hidden_channels, out_channels))
+
+#         self.dropout = dropout
+
+#     def reset_parameters(self):
+#         for conv in self.convs:
+#             conv.reset_parameters()
+#         for bn in self.bns:
+#             bn.reset_parameters()
+
+#     def forward(self, x, adj_t):
+#         for i, conv in enumerate(self.convs[:-1]):
+#             x = conv(x, adj_t)
+#             x = self.bns[i](x)
+#             x = F.relu(x)
+#             x = F.dropout(x, p=self.dropout, training=self.training)
+#         x = self.convs[-1](x, adj_t)
+#         return x
+
+
+class GNN(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+                 dropout, conv_type):
+        super(GNN, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.bns = torch.nn.ModuleList()
 
         for i in range(num_layers):
-            self.convs.append(
-                EGINConv(hidden_channels))
-            if i != num_layers - 1:
-                self.bns.append(nn.BatchNorm1d(hidden_channels))
-
-        self.dropout = dropout
-
-        self.out = nn.Linear(hidden_channels, out_channels)
-
-    def reset_parameters(self):
-        for emb in self.node_encoder.atom_embedding_list:
-            nn.init.xavier_uniform_(emb.weight.data)
+            if conv_type == 'gcn':
+                if i == 0:
+                    self.convs.append(GCNConv(in_channels, hidden_channels, cached=True))
+                elif i == num_layers - 1:
+                    self.convs.append(GCNConv(hidden_channels, out_channels, cached=True))
+                else:
+                    self.convs.append(
+                        GCNConv(hidden_channels, hidden_channels, cached=True))
+            elif conv_type == 'sage':
+                if i == 0:
+                    self.convs.append(SAGEConv(in_channels, hidden_channels))
+                elif i == num_layers - 1:
+                    self.convs.append(SAGEConv(hidden_channels, hidden_channels))
+                else:
+                    self.convs.append(
+                        SAGEConv(hidden_channels, hidden_channels))
             
-        num_layers = len(self.convs)
-
-        for i in range(num_layers):
-            self.convs[i].reset_parameters()
             if i != num_layers - 1:
-                self.bns[i].reset_parameters()
-
-        self.out.reset_parameters()
-
-    def forward(self, batched_data):
-        x, edge_index, edge_attr, batch = batched_data.x, batched_data.edge_index, batched_data.edge_attr, batched_data.batch
-
-        h = self.node_encoder(x)
-
-        for i, conv in enumerate(self.convs[:-1]):
-            h = conv(h, edge_index, edge_attr)
-            h = self.bns[i](h)
-            h = F.relu(h)
-            h = F.dropout(h, p=self.dropout, training=self.training)
-        h = self.convs[-1](h, edge_index, edge_attr)
-        h = F.dropout(h, self.dropout, training=self.training)
-
-        h = global_mean_pool(h, batch)
-        h = self.out(h)
-
-        return h
-
-
-class GCN(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout):
-        super(GCN, self).__init__()
-
-        self.convs = torch.nn.ModuleList()
-        self.convs.append(GCNConv(in_channels, hidden_channels, cached=True))
-        self.bns = torch.nn.ModuleList()
-        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        for _ in range(num_layers - 2):
-            self.convs.append(
-                GCNConv(hidden_channels, hidden_channels, cached=True))
-            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        self.convs.append(GCNConv(hidden_channels, out_channels, cached=True))
-
-        self.dropout = dropout
-
-    def reset_parameters(self):
-        for conv in self.convs:
-            conv.reset_parameters()
-        for bn in self.bns:
-            bn.reset_parameters()
-
-    def forward(self, x, adj_t):
-        for i, conv in enumerate(self.convs[:-1]):
-            x = conv(x, adj_t)
-            x = self.bns[i](x)
-            x = F.relu(x)
-            x = F.dropout(x, p=self.dropout, training=self.training)
-        x = self.convs[-1](x, adj_t)
-        return x
-
-
-class SAGE(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout):
-        super(SAGE, self).__init__()
-
-        self.convs = torch.nn.ModuleList()
-        self.convs.append(SAGEConv(in_channels, hidden_channels))
-        self.bns = torch.nn.ModuleList()
-        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        for _ in range(num_layers - 2):
-            self.convs.append(SAGEConv(hidden_channels, hidden_channels))
-            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        self.convs.append(SAGEConv(hidden_channels, out_channels))
-
+                self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        
         self.dropout = dropout
 
     def reset_parameters(self):

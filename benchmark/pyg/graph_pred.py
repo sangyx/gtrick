@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch_geometric.loader import DataLoader
 
 from utils import Logger, EarlyStopping
-from model import EGCN, EGIN
+from model import EGNN
 
 from tqdm.auto import tqdm
 
@@ -124,7 +124,7 @@ def main():
         description='train graph property prediction')
     parser.add_argument('--dataset', type=str, default='ogbg-molhiv',
                         choices=['ogbg-molhiv'])
-    parser.add_argument('--dataset_path', type=str, default='/home/ubuntu/.dgl_dataset',
+    parser.add_argument('--dataset_path', type=str, default='/dev/dataset',
                         help='path to dataset')
     parser.add_argument('--device', type=int, default=1)
     parser.add_argument('--log_steps', type=int, default=1)
@@ -146,13 +146,9 @@ def main():
     dataset = PygGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
 
-    if args.model == 'gin':
-        model = EGIN(args.hidden_channels,
+    model = EGNN(args.hidden_channels,
                      dataset.num_tasks, args.num_layers,
-                     args.dropout)
-    elif args.model == 'gcn':
-        model = EGCN(args.hidden_channels, dataset.num_tasks,
-                     args.num_layers, args.dropout)
+                     args.dropout, args.model)
 
     run_graph_pred(args, model, dataset)
 

@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 
 from utils import Logger, EarlyStopping
-from model import GCN, SAGE
+from model import GNN
 
 
 def train(model, g, x, y, train_idx, optimizer, task_type):
@@ -64,9 +64,9 @@ def run_node_pred(args, model, dataset):
     g.add_edges(dsts, srcs)
 
     # add self-loop
-    print(f"Total edges before adding self-loop {g.number_of_edges()}")
+    print(f'Total edges before adding self-loop {g.number_of_edges()}')
     g = g.remove_self_loop().add_self_loop()
-    print(f"Total edges after adding self-loop {g.number_of_edges()}")
+    print(f'Total edges after adding self-loop {g.number_of_edges()}')
 
     g, y = g.to(device), y.to(device)
 
@@ -113,10 +113,10 @@ def run_node_pred(args, model, dataset):
 def main():
     parser = argparse.ArgumentParser(
         description='train node property prediction')
-    parser.add_argument("--dataset", type=str, default="ogbn-arxiv",
-                        choices=["ogbn-arxiv"])
-    parser.add_argument("--dataset_path", type=str, default="/home/ubuntu/.dgl_dataset",
-                        help="path to dataset")
+    parser.add_argument('--dataset', type=str, default='ogbn-arxiv',
+                        choices=['ogbn-arxiv'])
+    parser.add_argument('--dataset_path', type=str, default='/dev/dataset',
+                        help='path to dataset')
     parser.add_argument('--device', type=int, default=0)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--model', type=str, default='sage')
@@ -135,14 +135,9 @@ def main():
 
     num_features = g.ndata['feat'].shape[1]
 
-    if args.model == 'gcn':
-        model = GCN(num_features, args.hidden_channels,
+    model = GNN(num_features, args.hidden_channels,
                     dataset.num_classes, args.num_layers,
-                    args.dropout)
-    elif args.model == 'sage':
-        model = SAGE(num_features, args.hidden_channels,
-                     dataset.num_classes, args.num_layers,
-                     args.dropout)
+                    args.dropout, args.model)
 
     run_node_pred(args, model, dataset)
 
