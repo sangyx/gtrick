@@ -7,12 +7,12 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from utils import Logger, EarlyStopping
-from model import EGCN, EGIN
+from model import EGNN
 
 from tqdm.auto import tqdm
 
 
-def train(model, device, loader, optimizer):
+def train(model, device, loader, optimizer, loss_func):
     model.train()
 
     total_loss = 0
@@ -26,7 +26,12 @@ def train(model, device, loader, optimizer):
         optimizer.zero_grad()
 
         # loss = F.mse_loss(yh.float(), y.float())
-        loss = F.binary_cross_entropy_with_logits(yh.float(), y.float())
+        # loss = F.binary_cross_entropy_with_logits(yh.float(), y.float())
+        
+        if yh.shape[1] > 1:
+            loss = loss_func(yh.float(), y.flatten())
+        else:
+            loss = loss_func(yh.float(), y.float())
         loss.backward()
         optimizer.step()
 
@@ -48,8 +53,12 @@ def eval(model, device, loader, evaluator, eval_metric):
 
         yh = model(g, g.ndata['feat'], g.edata['feat'])
 
-        y_true.append(y.view(yh.shape).detach().cpu())
-        y_pred.append(yh.detach().cpu())
+        if yh.shape[1] > 1:
+            y_true.append(y.detach().cpu())
+            y_pred.append(torch.argmax(yh.detach(), dim = 1).view(-1,1).cpu())
+        else:
+            y_true.append(y.view(yh.shape).detach().cpu())
+            y_pred.append(yh.detach().cpu())
 
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
@@ -66,9 +75,12 @@ def run_graph_pred(args, model, dataset):
     model.to(device)
 
     # add self-loop
-    for i in range(len(dataset)):
+    for i in tqdm(range(len(dataset)), desc='Processing'):
         dataset.graphs[i] = dataset.graphs[i].remove_self_loop(
         ).add_self_loop()
+
+        if args.dataset == 'ogbg-ppa':
+            dataset.graphs[i].ndata['feat'] = torch.zeros(dataset.graphs[i].num_nodes()).long()
 
     evaluator = Evaluator(name=args.dataset)
 
@@ -88,12 +100,17 @@ def run_graph_pred(args, model, dataset):
         model.reset_parameters()
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
+        if args.dataset == 'ogbg-molhiv':
+            loss_func = F.binary_cross_entropy_with_logits
+        elif args.dataset == 'ogbg-ppa':
+            loss_func = F.cross_entropy
+
         early_stopping = EarlyStopping(
             patience=args.patience, verbose=True, mode='max')
 
         for epoch in range(1, 1 + args.epochs):
             print('epoch {}'.format(epoch))
-            loss = train(model, device, train_loader, optimizer)
+            loss = train(model, device, train_loader, optimizer, loss_func)
 
             train_metric = eval(model, device, train_loader,
                                 evaluator, dataset.eval_metric)
@@ -124,11 +141,11 @@ def run_graph_pred(args, model, dataset):
 def main():
     parser = argparse.ArgumentParser(
         description='train graph property prediction')
-    parser.add_argument('--dataset', type=str, default='ogbg-molhiv',
-                        choices=['ogbg-molhiv'])
-    parser.add_argument('--dataset_path', type=str, default='/home/ubuntu/.dgl_dataset',
+    parser.add_argument('--dataset', type=str, default='ogbg-ppa',
+                        choices=['ogbg-molhiv', 'ogbg-ppa'])
+    parser.add_argument('--dataset_path', type=str, default='/dev/dataset',
                         help='path to dataset')
-    parser.add_argument('--device', type=int, default=2)
+    parser.add_argument('--device', type=int, default=0)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--num_layers', type=int, default=5)
     parser.add_argument('--hidden_channels', type=int, default=300)
@@ -148,13 +165,14 @@ def main():
     dataset = DglGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
 
-    if args.model == 'gin':
-        model = EGIN(args.hidden_channels,
+    if args.dataset == 'ogbg-molhiv':
+        model = EGNN(args.hidden_channels,
                      dataset.num_tasks, args.num_layers,
-                     args.dropout)
-    elif args.model == 'gcn':
-        model = EGCN(args.hidden_channels, dataset.num_tasks,
-                     args.num_layers, args.dropout)
+                     args.dropout, args.model, mol=True)
+    elif args.dataset == 'ogbg-ppa':
+        model = EGNN(args.hidden_channels,
+                     int(dataset.num_classes), args.num_layers,
+                     args.dropout, args.model)
 
     run_graph_pred(args, model, dataset)
 
