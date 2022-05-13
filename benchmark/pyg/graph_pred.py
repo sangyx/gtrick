@@ -12,7 +12,12 @@ from model import EGNN
 from tqdm.auto import tqdm
 
 
-def train(model, device, loader, optimizer):
+def add_zeros(data):
+    data.x = torch.zeros(data.num_nodes, dtype=torch.long)
+    return data
+
+
+def train(model, device, loader, optimizer, loss_func):
     model.train()
 
     total_loss = 0
@@ -27,7 +32,13 @@ def train(model, device, loader, optimizer):
         y = batch.y
 
         # loss = F.mse_loss(yh.float(), y.float())
-        loss = F.binary_cross_entropy_with_logits(yh.float(), y.float())
+        # loss = F.binary_cross_entropy_with_logits(yh.float(), y.float())
+
+        if yh.shape[1] > 1:
+            loss = loss_func(yh.float(), y.flatten())
+        else:
+            loss = loss_func(yh.float(), y.float())
+
         loss.backward()
         optimizer.step()
 
@@ -45,13 +56,19 @@ def eval(model, device, loader, evaluator, eval_metric):
 
     for batch in tqdm(loader, desc='Eval '):
         batch = batch.to(device)
+        y = batch.y
 
         yh = model(batch)
 
-        y = batch.y
+        if yh.shape[1] > 1:
+            y_true.append(y.detach().cpu())
+            y_pred.append(torch.argmax(yh.detach(), dim = 1).view(-1,1).cpu())
+        else:
+            y_true.append(y.view(yh.shape).detach().cpu())
+            y_pred.append(yh.detach().cpu())
 
-        y_true.append(y.view(yh.shape).detach().cpu())
-        y_pred.append(yh.detach().cpu())
+        # y_true.append(y.view(yh.shape).detach().cpu())
+        # y_pred.append(yh.detach().cpu())
 
     y_true = torch.cat(y_true, dim=0).numpy()
     y_pred = torch.cat(y_pred, dim=0).numpy()
@@ -67,7 +84,6 @@ def run_graph_pred(args, model, dataset):
 
     model.to(device)
 
-    # dataset = DglNodePropPredDataset(name=args.dataset, root=args.dataset_path)
     evaluator = Evaluator(name=args.dataset)
 
     split_idx = dataset.get_idx_split()
@@ -86,12 +102,17 @@ def run_graph_pred(args, model, dataset):
         model.reset_parameters()
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
+        if args.dataset == 'ogbg-molhiv':
+            loss_func = F.binary_cross_entropy_with_logits
+        elif args.dataset == 'ogbg-ppa':
+            loss_func = F.cross_entropy
+
         early_stopping = EarlyStopping(
             patience=args.patience, verbose=True, mode='max')
 
         for epoch in range(1, 1 + args.epochs):
             print('epoch {}'.format(epoch))
-            loss = train(model, device, train_loader, optimizer)
+            loss = train(model, device, train_loader, optimizer, loss_func)
 
             train_metric = eval(model, device, train_loader,
                                 evaluator, dataset.eval_metric)
@@ -106,10 +127,10 @@ def run_graph_pred(args, model, dataset):
 
             if epoch % args.log_steps == 0:
                 print(
-                      f'Loss: {loss:.4f}, '
-                      f'Train: {train_metric:.4f}, '
-                      f'Valid: {valid_metric:.4f} '
-                      f'Test: {test_metric:.4f}')
+                    f'Loss: {loss:.4f}, '
+                    f'Train: {train_metric:.4f}, '
+                    f'Valid: {valid_metric:.4f} '
+                    f'Test: {test_metric:.4f}')
                 print()
 
             if early_stopping(valid_metric, model):
@@ -122,8 +143,8 @@ def run_graph_pred(args, model, dataset):
 def main():
     parser = argparse.ArgumentParser(
         description='train graph property prediction')
-    parser.add_argument('--dataset', type=str, default='ogbg-molhiv',
-                        choices=['ogbg-molhiv'])
+    parser.add_argument('--dataset', type=str, default='ogbg-ppa',
+                        choices=['ogbg-molhiv', 'ogbg-ppa'])
     parser.add_argument('--dataset_path', type=str, default='/dev/dataset',
                         help='path to dataset')
     parser.add_argument('--device', type=int, default=1)
@@ -136,18 +157,26 @@ def main():
                         help='batch size')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
-    parser.add_argument('--model', type=str, default='gin')
+    parser.add_argument('--model', type=str, default='gcn')
     parser.add_argument('--epochs', type=int, default=500)
-    parser.add_argument('--runs', type=int, default=5)
-    parser.add_argument('--patience', type=int, default=30)
+    parser.add_argument('--runs', type=int, default=3)
+    parser.add_argument('--patience', type=int, default=10)
     args = parser.parse_args()
     print(args)
 
-    dataset = PygGraphPropPredDataset(
+    if args.dataset == 'ogbg-molhiv':
+        dataset = PygGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
 
-    model = EGNN(args.hidden_channels,
+        model = EGNN(args.hidden_channels,
                      dataset.num_tasks, args.num_layers,
+                     args.dropout, args.model, mol=True)
+    elif args.dataset == 'ogbg-ppa':
+        dataset = PygGraphPropPredDataset(
+        name=args.dataset, root=args.dataset_path, transform=add_zeros)
+
+        model = EGNN(args.hidden_channels,
+                     int(dataset.num_classes), args.num_layers,
                      args.dropout, args.model)
 
     run_graph_pred(args, model, dataset)

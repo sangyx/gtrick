@@ -1,10 +1,9 @@
-from selectors import EpollSelector
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 import dgl.function as fn
-from dgl.nn import GraphConv, GATConv, SAGEConv, AvgPooling
+from dgl.nn import GraphConv, SAGEConv, AvgPooling
 
 from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
 
@@ -55,18 +54,28 @@ class EGINConv(nn.Module):
             return out
 
 class EGCNConv(nn.Module):
-    def __init__(self, emb_dim):
+    def __init__(self, emb_dim, mol):
         super(EGCNConv, self).__init__()
+
+        self.mol = mol
 
         self.linear = nn.Linear(emb_dim, emb_dim)
         self.root_emb = nn.Embedding(1, emb_dim)
-        self.edge_encoder = BondEncoder(emb_dim)
+
+        if self.mol:
+            self.edge_encoder = BondEncoder(emb_dim)
+        else:
+            self.edge_encoder = nn.Linear(7, emb_dim)
     
     def reset_parameters(self):
         self.linear.reset_parameters()
         self.root_emb.reset_parameters()
-        for emb in self.edge_encoder.bond_embedding_list:
-            nn.init.xavier_uniform_(emb.weight.data)
+        
+        if self.mol:
+            for emb in self.edge_encoder.bond_embedding_list:
+                nn.init.xavier_uniform_(emb.weight.data)
+        else:
+            self.edge_encoder.reset_parameters()
 
     def forward(self, g, x, ex):
         with g.local_scope():
@@ -117,8 +126,7 @@ class EGNN(nn.Module):
                 self.convs.append(
                     EGCNConv(hidden_channels, self.mol))
 
-            if i != num_layers - 1:
-                self.bns.append(nn.BatchNorm1d(hidden_channels))
+            self.bns.append(nn.BatchNorm1d(hidden_channels))
 
         self.dropout = dropout
 
@@ -136,8 +144,7 @@ class EGNN(nn.Module):
         num_layers = len(self.convs)
         for i in range(num_layers):
             self.convs[i].reset_parameters()
-            if i != num_layers - 1:
-                self.bns[i].reset_parameters()
+            self.bns[i].reset_parameters()
 
         self.out.reset_parameters()
 
@@ -149,9 +156,12 @@ class EGNN(nn.Module):
             h = self.bns[i](h)
             h = F.relu(h)
             h = F.dropout(h, p=self.dropout, training=self.training)
-            
 
         h = self.convs[-1](g, h, ex)
+        
+        if not self.mol:
+            h = self.bns[-1](h)
+        
         h = F.dropout(h, self.dropout, training = self.training)
 
         h = self.pool(g, h)
@@ -207,109 +217,3 @@ class GNN(nn.Module):
         x = self.convs[-1](g, x)
 
         return x
-
-
-# class GCN(nn.Module):
-#     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-#                  dropout):
-#         super(GCN, self).__init__()
-
-#         self.convs = nn.ModuleList()
-#         self.convs.append(GraphConv(in_channels, hidden_channels))
-#         self.bns = nn.ModuleList()
-#         self.bns.append(nn.BatchNorm1d(hidden_channels))
-#         for _ in range(num_layers - 2):
-#             self.convs.append(
-#                 GraphConv(hidden_channels, hidden_channels))
-#             self.bns.append(nn.BatchNorm1d(hidden_channels))
-#         self.convs.append(GraphConv(hidden_channels, out_channels))
-
-#         self.dropout = dropout
-
-
-#     def reset_parameters(self):
-#         for conv in self.convs:
-#             conv.reset_parameters()
-#         for bn in self.bns:
-#             bn.reset_parameters()
-
-#     def forward(self, g, x):
-#         for i, conv in enumerate(self.convs[:-1]):
-#             x = conv(g, x)
-#             x = self.bns[i](x)
-#             x = F.relu(x)
-#             x = F.dropout(x, p=self.dropout, training=self.training)
-#         x = self.convs[-1](g, x)
-
-#         return x
-
-
-# class SAGE(nn.Module):
-#     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-#                  dropout):
-#         super(SAGE, self).__init__()
-
-#         self.convs = nn.ModuleList()
-#         self.convs.append(SAGEConv(in_channels, hidden_channels, 'mean'))
-#         self.bns = nn.ModuleList()
-#         self.bns.append(nn.BatchNorm1d(hidden_channels))
-#         for _ in range(num_layers - 2):
-#             self.convs.append(SAGEConv(hidden_channels, hidden_channels, 'mean'))
-#             self.bns.append(nn.BatchNorm1d(hidden_channels))
-#         self.convs.append(SAGEConv(hidden_channels, out_channels, 'mean'))
-
-#         self.dropout = dropout
-
-#     def reset_parameters(self):
-#         for conv in self.convs:
-#             conv.reset_parameters()
-#         for bn in self.bns:
-#             bn.reset_parameters()
-
-#     def forward(self, g, x):
-#         for i, conv in enumerate(self.convs[:-1]):
-#             x = conv(g, x)
-#             x = self.bns[i](x)
-#             x = F.relu(x)
-#             x = F.dropout(x, p=self.dropout, training=self.training)
-#         x = self.convs[-1](g, x)
-#         return x
-
-# class GAT(nn.Module):
-#     def __init__(self,
-#                  num_layers,
-#                  in_dim,
-#                  num_hidden,
-#                  num_classes,
-#                  heads,
-#                  activation,
-#                  feat_drop,
-#                  attn_drop,
-#                  negative_slope,
-#                  residual):
-#         super(GAT, self).__init__()
-#         self.num_layers = num_layers
-#         self.gat_layers = nn.ModuleList()
-#         self.activation = activation
-#         # input projection (no residual)
-#         self.gat_layers.append(GATConv(
-#             in_dim, num_hidden, heads[0],
-#             feat_drop, attn_drop, negative_slope, False, self.activation))
-#         # hidden layers
-#         for l in range(1, num_layers):
-#             # due to multi-head, the in_dim = num_hidden * num_heads
-#             self.gat_layers.append(GATConv(
-#                 num_hidden * heads[l-1], num_hidden, heads[l],
-#                 feat_drop, attn_drop, negative_slope, residual, self.activation))
-#         # output projection
-#         self.gat_layers.append(GATConv(
-#             num_hidden * heads[-2], num_classes, heads[-1],
-#             feat_drop, attn_drop, negative_slope, residual, None))
-
-#     def forward(self, g, inputs):
-#         h = inputs
-#         for l in range(self.num_layers):
-#             h = self.gat_layers[l](g, h).flatten(1)
-#         # output projection
-#         logits = self.gat_layers[-1](g, h).mean(1)
-#         return logits

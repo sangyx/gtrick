@@ -20,7 +20,7 @@ def train(model, data, train_idx, optimizer, task_type):
         loss = F.binary_cross_entropy_with_logits(
             out[train_idx], y.squeeze(1)[train_idx])
     elif task_type == 'multiclass classification':
-        loss = F.cross_entropy(out[train_idx], y.squeeze(1)[train_idx])
+        loss = F.cross_entropy(out[train_idx], y[train_idx])
     loss.backward()
     optimizer.step()
 
@@ -114,8 +114,8 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--epochs', type=int, default=500)
-    parser.add_argument('--runs', type=int, default=5)
-    parser.add_argument('--patience', type=int, default=30)
+    parser.add_argument('--runs', type=int, default=3)
+    parser.add_argument('--patience', type=int, default=10)
     args = parser.parse_args()
     print(args)
 

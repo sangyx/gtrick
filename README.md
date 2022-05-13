@@ -21,7 +21,9 @@ pip install gtrick
 
 The results listed below are implemented by PyG. You can find the results of DGL in [DGL Benchmark](benchmark/dgl/README.md).
 
-### Graph Property Prediction: ogbg-molhiv
+### Graph Property Prediction
+
+#### ogbg-molhiv
 
 |     Trick     |       GCN       |       GIN       |
 |:-------------:|:---------------:|:---------------:|
@@ -29,7 +31,17 @@ The results listed below are implemented by PyG. You can find the results of DGL
 | +Virtual Node | 0.7581 ± 0.0135 | 0.7713 ± 0.0036 |
 |     +FLAG     | 0.7627 ± 0.0124 | 0.7764 ± 0.0083 |
 
-### Node Property Prediction: ogbn-arxiv
+#### ogbg-ppa
+
+|     Trick     |       GCN       |       GIN       |
+|:-------------:|:---------------:|:---------------:|
+|       —       | 0.6664 ± 0.0097 | 0.6849 ± 0.0308 |
+| +Virtual Node | 0.6695 ± 0.0013 | 0.7090 ± 0.0187 |
+
+### Node Property Prediction
+
+#### ogbn-arxiv
+
 |     Trick     |       GCN       |       SAGE      |
 |:-------------:|:---------------:|:---------------:|
 |       —       | 0.7152 ± 0.0024 | 0.7153 ± 0.0028 |

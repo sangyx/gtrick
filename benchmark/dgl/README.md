@@ -1,6 +1,8 @@
-## DGL Benchmark
+# DGL Benchmark
 
-### Graph Property Prediction: ogbg-molhiv
+## Graph Property Prediction
+
+### ogbg-molhiv
 
 run the baseline code:
 ```bash
@@ -13,7 +15,22 @@ python graph_pred.py --model gin/gcn
 | +Virtual Node | 0.7330 ± 0.0293 | 0.7673 ± 0.0082 |
 |     +FLAG     | 0.7588 ± 0.0098 | 0.7652 ± 0.0161 |
 
-### Node Property Prediction: ogbn-arxiv
+### ogbg-ppa
+
+|     Trick     |       GCN       |       GIN       |
+|:-------------:|:---------------:|:---------------:|
+|       —       | 0.6664 ± 0.0097 | 0.6849 ± 0.0308 |
+| +Virtual Node | 0.6695 ± 0.0013 | 0.7090 ± 0.0187 |
+
+## Node Property Prediction
+
+run the baseline code:
+```bash
+python node_pred.py --model gcn/sage
+```
+
+### ogbn-arxiv
+
 |     Trick     |       GCN       |       SAGE      |
 |:-------------:|:---------------:|:---------------:|
 |       —       | 0.7165 ± 0.0017 | 0.7157 ± 0.0025 |
