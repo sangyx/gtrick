@@ -1,6 +1,8 @@
-# gtrick: Bag of Tricks for Graph Neural Networks
+# gtrick: Bag of Tricks for Graph Neural Networks.
 
-> Trick is all you need.
+> Trick is all you need. 
+
+Let's Get Started!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
 
 ## Trick
 
