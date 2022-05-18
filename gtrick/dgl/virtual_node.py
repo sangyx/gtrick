@@ -23,7 +23,7 @@ class VirtualNode(nn.Module):
             residual (bool): If True, use residual connection. Defaults: False.
         '''
 
-        super(VirtualNode, self).__init__()
+        super(VirtualNode).__init__()
         self.dropout = dropout
         # Add residual connection or not
         self.residual = residual
@@ -47,6 +47,8 @@ class VirtualNode(nn.Module):
             nn.ReLU())
 
         self.pool = SumPooling()
+
+        self.reset_parameters()
 
     def reset_parameters(self):
         if not isinstance(self.linear, nn.Identity):

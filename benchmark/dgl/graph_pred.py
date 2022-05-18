@@ -114,6 +114,8 @@ def run_graph_pred(args, model, dataset):
 
             train_metric = eval(model, device, train_loader,
                                 evaluator, dataset.eval_metric)
+
+
             valid_metric = eval(model, device, valid_loader,
                                 evaluator, dataset.eval_metric)
             test_metric = eval(model, device, test_loader,

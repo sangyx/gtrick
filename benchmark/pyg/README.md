@@ -15,6 +15,8 @@ python graph_pred.py --model gin/gcn
 | +Virtual Node | 0.7581 ± 0.0135 | 0.7713 ± 0.0036 |
 |     +FLAG     | 0.7627 ± 0.0124 | 0.7764 ± 0.0083 |
 
+* Random Forest + Fingerprint: 0.8218 ± 0.0022
+
 
 ### ogbg-ppa
 

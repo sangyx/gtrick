@@ -2,3 +2,4 @@
 
 # TODO: add version information here
 from .flag import FLAG
+from .fingerprint import ogb2fp, smiles2fp

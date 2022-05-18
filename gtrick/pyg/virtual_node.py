@@ -44,6 +44,8 @@ class VirtualNode(nn.Module):
             nn.Linear(2 * out_feats, out_feats),
             nn.BatchNorm1d(out_feats),
             nn.ReLU())
+        
+        self.reset_parameters()
 
     def reset_parameters(self):
         if not isinstance(self.linear, nn.Identity):
