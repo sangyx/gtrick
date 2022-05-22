@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from utils import Logger, EarlyStopping
+from utils import Logger, EarlyStopping, seed_everything
 from model import EGNN
 
 from tqdm.auto import tqdm
@@ -143,7 +143,7 @@ def run_graph_pred(args, model, dataset):
 def main():
     parser = argparse.ArgumentParser(
         description='train graph property prediction')
-    parser.add_argument('--dataset', type=str, default='ogbg-ppa',
+    parser.add_argument('--dataset', type=str, default='ogbg-molhiv',
                         choices=['ogbg-molhiv', 'ogbg-ppa'])
     parser.add_argument('--dataset_path', type=str, default='/dev/dataset',
                         help='path to dataset')
@@ -157,12 +157,14 @@ def main():
                         help='batch size')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
-    parser.add_argument('--model', type=str, default='gin')
+    parser.add_argument('--model', type=str, default='gcn')
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--runs', type=int, default=3)
-    parser.add_argument('--patience', type=int, default=10)
+    parser.add_argument('--patience', type=int, default=30)
     args = parser.parse_args()
     print(args)
+
+    seed_everything(3042)
 
     dataset = DglGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path)
