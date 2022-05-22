@@ -160,7 +160,7 @@ def main():
     parser.add_argument('--model', type=str, default='gcn')
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--runs', type=int, default=3)
-    parser.add_argument('--patience', type=int, default=10)
+    parser.add_argument('--patience', type=int, default=30)
     args = parser.parse_args()
     print(args)
 
