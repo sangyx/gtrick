@@ -195,7 +195,7 @@ class GNN(torch.nn.Module):
                     self.convs.append(SAGEConv(in_channels, hidden_channels))
                 elif i == num_layers - 1:
                     self.convs.append(
-                        SAGEConv(hidden_channels, hidden_channels))
+                        SAGEConv(hidden_channels, out_channels))
                 else:
                     self.convs.append(
                         SAGEConv(hidden_channels, hidden_channels))
