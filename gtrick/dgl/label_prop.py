@@ -1,7 +1,14 @@
+"""DGL Module for Label Propagation"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
+
+'''
+The code are adapted from
+https://github.com/dmlc/dgl/tree/master/examples/pytorch/label_propagation
+'''
 
 class LabelPropagation(nn.Module):
     r"""The label propagation operator from the `"Learning from Labeled and
