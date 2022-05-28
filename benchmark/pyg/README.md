@@ -74,13 +74,18 @@
   </tr>
   <tr>
     <td class="tg-baqh">—</td>
-    <td class="tg-baqh">0.7152 ± 0.0024</td>
-    <td class="tg-baqh">0.7153 ± 0.0028</td>
+    <td class="tg-baqh">0.7167 ± 0.0022</td>
+    <td class="tg-baqh">0.7167 ± 0.0025</td>
   </tr>
   <tr>
     <td class="tg-baqh">+FLAG</td>
     <td class="tg-baqh">0.7187 ± 0.0020</td>
     <td class="tg-baqh">0.7206 ± 0.0013</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Label Propagation</td>
+    <td class="tg-baqh">0.7177 ± 0.0021</td>
+    <td class="tg-baqh">0.7178 ± 0.0023</td>
   </tr>
 </tbody>
 </table>

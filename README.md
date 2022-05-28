@@ -12,6 +12,7 @@ Let's Get Started!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898
 | FLAG |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/FLAG.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/FLAG.ipynb) | node*<br>graph | [Robust Optimization as Data Augmentation for Large-scale Graphs](https://arxiv.org/abs/2010.09891) |
 | Fingerprint |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/Fingerprint.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/Fingerprint.ipynb) | molecular graph* | [Extended-Connectivity Fingerprints](https://pubs.acs.org/doi/10.1021/ci100050t) |
 | Random Feature |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/RandomFeature.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/RandomFeature.ipynb) | graph* | [Random Features Strengthen Graph Neural Networks](http://arxiv.org/abs/2002.03155) |
+| Label Propagation |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/LabelProp.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/LabelProp.ipynb) | node* | [Learning from Labeled and Unlabeled Datawith Label Propagation](http://mlg.eng.cam.ac.uk/zoubin/papers/CMU-CALD-02-107.pdf) |
 
 
 ## Installation
@@ -83,6 +84,8 @@ The results listed below are implemented by PyG. You can find the results of DGL
 
 ### Node Property Prediction
 
+## Node Property Prediction
+
 <table class="tg">
 <thead>
   <tr>
@@ -98,13 +101,18 @@ The results listed below are implemented by PyG. You can find the results of DGL
   </tr>
   <tr>
     <td class="tg-baqh">—</td>
-    <td class="tg-baqh">0.7152 ± 0.0024</td>
-    <td class="tg-baqh">0.7153 ± 0.0028</td>
+    <td class="tg-baqh">0.7167 ± 0.0022</td>
+    <td class="tg-baqh">0.7167 ± 0.0025</td>
   </tr>
   <tr>
     <td class="tg-baqh">+FLAG</td>
     <td class="tg-baqh">0.7187 ± 0.0020</td>
     <td class="tg-baqh">0.7206 ± 0.0013</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Label Propagation</td>
+    <td class="tg-baqh">0.7177 ± 0.0021</td>
+    <td class="tg-baqh">0.7178 ± 0.0023</td>
   </tr>
 </tbody>
 </table>
