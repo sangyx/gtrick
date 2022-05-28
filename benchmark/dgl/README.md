@@ -85,8 +85,8 @@
   </tr>
   <tr>
     <td class="tg-baqh">+Label Propagation</td>
-    <td class="tg-baqh">0.7184  ± 0.0029</td>
-    <td class="tg-baqh">0.7177  ± 0.0025</td>
+    <td class="tg-baqh">0.7194 ± 0.0013</td>
+    <td class="tg-baqh">0.7188  ± 0.0021</td>
   </tr>
 </tbody>
 </table>

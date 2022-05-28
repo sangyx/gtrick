@@ -111,8 +111,8 @@ The results listed below are implemented by PyG. You can find the results of DGL
   </tr>
   <tr>
     <td class="tg-baqh">+Label Propagation</td>
-    <td class="tg-baqh">0.7177 ± 0.0021</td>
-    <td class="tg-baqh">0.7178 ± 0.0023</td>
+    <td class="tg-baqh">0.7212 ± 0.0006</td>
+    <td class="tg-baqh">0.7197 ± 0.0020</td>
   </tr>
 </tbody>
 </table>
