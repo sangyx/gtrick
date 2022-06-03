@@ -13,6 +13,7 @@ Let's Get Started!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898
 | Fingerprint |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/Fingerprint.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/Fingerprint.ipynb) | molecular graph* | [Extended-Connectivity Fingerprints](https://pubs.acs.org/doi/10.1021/ci100050t) |
 | Random Feature |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/RandomFeature.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/RandomFeature.ipynb) | graph* | [Random Features Strengthen Graph Neural Networks](http://arxiv.org/abs/2002.03155) |
 | Label Propagation |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/LabelProp.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/LabelProp.ipynb) | node* | [Learning from Labeled and Unlabeled Datawith Label Propagation](http://mlg.eng.cam.ac.uk/zoubin/papers/CMU-CALD-02-107.pdf) |
+| Correct & Smooth |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/C&S.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/C&S.ipynb) | node* | [Combining Label Propagation And Simple Models Out-performs Graph Neural Networks](https://arxiv.org/abs/2010.13993) |
 
 
 ## Installation
@@ -113,6 +114,11 @@ The results listed below are implemented by PyG. You can find the results of DGL
     <td class="tg-baqh">+Label Propagation</td>
     <td class="tg-baqh">0.7212 ± 0.0006</td>
     <td class="tg-baqh">0.7197 ± 0.0020</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Correct & Smooth</td>
+    <td class="tg-baqh">0.7220 ± 0.0037</td>
+    <td class="tg-baqh">0.7264 ± 0.0004</td>
   </tr>
 </tbody>
 </table>

@@ -88,6 +88,11 @@
     <td class="tg-baqh">0.7194 ± 0.0013</td>
     <td class="tg-baqh">0.7188  ± 0.0021</td>
   </tr>
+  <tr>
+    <td class="tg-baqh">+Correct & Smooth</td>
+    <td class="tg-baqh">0.7274 ± 0.0039</td>
+    <td class="tg-baqh">0.7347 ± 0.0017</td>
+  </tr>
 </tbody>
 </table>
 
