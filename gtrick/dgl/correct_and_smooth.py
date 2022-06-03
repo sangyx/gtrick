@@ -1,8 +1,15 @@
+"""DGL Module for Correct & Smooth"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from .label_prop import LabelPropagation
+
+'''
+The code are adapted from
+https://github.com/dmlc/dgl/tree/master/examples/pytorch/correct_and_smooth
+'''
 
 class CorrectAndSmooth(nn.Module):
     r"""The correct and smooth (C&S) post-processing model from the

@@ -83,7 +83,6 @@ The results listed below are implemented by PyG. You can find the results of DGL
 </tbody>
 </table>
 
-### Node Property Prediction
 
 ## Node Property Prediction
 
