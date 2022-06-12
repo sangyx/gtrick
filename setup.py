@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="gtrick",
-    version="0.0.dev1",
+    version="0.0.dev2",
     author="sangyx",
     author_email="sangyunxin@gmail.com",
     description="Bag of Tricks for Graph Neural Networks",
@@ -19,7 +19,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "torch"
+        "torch",
+        "numpy",
+        "networkx"
     ],
     python_requires=">=3",
 )

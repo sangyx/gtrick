@@ -1,8 +1,8 @@
 # gtrick: Bag of Tricks for Graph Neural Networks.
 
-> Trick is all you need. 
+gtrick is an easy-to-use Python package collecting tricks for Graph Neural Networks. We test and provide powerful tricks to boost your models' performance.
 
-Let's Get Started!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
+Trick is all you need!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
 
 ## Trick
 
@@ -34,55 +34,42 @@ The results listed below are implemented by PyG. You can find the results of DGL
 
 ### Graph Property Prediction
 
-<table class="tg">
+<table>
 <thead>
   <tr>
-    <th class="tg-baqh">Dataset</th>
-    <th class="tg-baqh" colspan="2">ogbg-molhiv</th>
-    <th class="tg-baqh" colspan="2">ogbg-ppa</th>
+    <th>Dataset</th>
+    <th colspan="2">ogbg-molhiv</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-    <td class="tg-baqh">Trick</td>
-    <td class="tg-baqh">GCN</td>
-    <td class="tg-baqh">GIN</td>
-    <td class="tg-baqh">GCN</td>
-    <td class="tg-baqh">GIN</td>
+    <td>Trick</td>
+    <td>GCN</td>
+    <td>GIN</td>
   </tr>
   <tr>
-    <td class="tg-baqh">—</td>
-    <td class="tg-baqh">0.7690 ± 0.0053</td>
-    <td class="tg-baqh">0.7778 ± 0.0130</td>
-    <td class="tg-nrix">0.6787 ± 0.0091</td>
-    <td class="tg-nrix">0.6833 ± 0.0087</td>
+    <td>—</td>
+    <td>0.7690 ± 0.0053</td>
+    <td>0.7778 ± 0.0130</td>
   </tr>
   <tr>
-    <td class="tg-baqh">+Virtual Node</td>
-    <td class="tg-baqh">0.7581 ± 0.0135</td>
-    <td class="tg-baqh">0.7713 ± 0.0036</td>
-    <td class="tg-nrix">0.6747 ± 0.0060</td>
-    <td class="tg-nrix">0.6901 ± 0.0277</td>
+    <td>+Virtual Node</td>
+    <td>0.7581 ± 0.0135</td>
+    <td>0.7713 ± 0.0036</td>
   </tr>
   <tr>
-    <td class="tg-baqh">+FLAG</td>
-    <td class="tg-baqh">0.7627 ± 0.0124</td>
-    <td class="tg-baqh">0.7764 ± 0.0083</td>
-    <td class="tg-baqh"></td>
-    <td class="tg-baqh"></td>
+    <td>+FLAG</td>
+    <td>0.7627 ± 0.0124</td>
+    <td>0.7764 ± 0.0083</td>
   </tr>
   <tr>
-    <td class="tg-baqh">+Random Feature</td>
-    <td class="tg-baqh">0.7743 ± 0.0134</td>
-    <td class="tg-baqh">0.7692 ± 0.0065</td>
-    <td class="tg-baqh"></td>
-    <td class="tg-baqh"></td>
+    <td>+Random Feature</td>
+    <td>0.7743 ± 0.0134</td>
+    <td>0.7692 ± 0.0065</td>
   </tr>
   <tr>
-    <td class="tg-baqh">Random Forest + Fingerprint</td>
-    <td class="tg-baqh" colspan="2">0.8218 ± 0.0022</td>
-    <td class="tg-baqh"></td>
-    <td class="tg-baqh"></td>
+    <td>Random Forest + Fingerprint</td>
+    <td colspan="2">0.8218 ± 0.0022</td>
   </tr>
 </tbody>
 </table>
