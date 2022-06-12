@@ -4,7 +4,9 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from ogb.linkproppred import DglLinkPropPredDataset, Evaluator
+from ogb.linkproppred import PygLinkPropPredDataset, Evaluator
+
+import torch_geometric.transforms as T
 
 from utils import Logger, EarlyStopping, seed_everything
 from model import GNN
@@ -37,18 +39,18 @@ class LinkPredictor(torch.nn.Module):
         return torch.sigmoid(x)
 
 
-def train(model, predictor, g, x, split_edge, optimizer, batch_size):
+def train(model, predictor, data, split_edge, optimizer, batch_size):
     model.train()
     predictor.train()
 
-    pos_train_edge = split_edge['train']['edge'].to(x.device)
+    pos_train_edge = split_edge['train']['edge'].to(data.x.device)
 
     total_loss = total_examples = 0
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size,
                            shuffle=True):
         optimizer.zero_grad()
 
-        h = model(g, x)
+        h = model(data.x, data.adj_t)
 
         edge = pos_train_edge[perm].t()
 
@@ -56,7 +58,7 @@ def train(model, predictor, g, x, split_edge, optimizer, batch_size):
         pos_loss = -torch.log(pos_out + 1e-15).mean()
 
         # Just do some trivial random sampling.
-        edge = torch.randint(0, g.num_nodes(), edge.size(), dtype=torch.long,
+        edge = torch.randint(0, data.num_nodes, edge.size(), dtype=torch.long,
                              device=h.device)
         neg_out = predictor(h[edge[0]], h[edge[1]])
         neg_loss = -torch.log(1 - neg_out + 1e-15).mean()
@@ -77,11 +79,11 @@ def train(model, predictor, g, x, split_edge, optimizer, batch_size):
 
 
 @torch.no_grad()
-def test(model, predictor, g, x, split_edge, evaluator, batch_size, eval_metric):
+def test(model, predictor, data, split_edge, evaluator, batch_size, eval_metric):
     model.eval()
     predictor.eval()
 
-    h = model(g, x)
+    h = model(data.x, data.adj_t)
 
     pos_train_edge = split_edge['train']['edge'].to(h.device)
     pos_valid_edge = split_edge['valid']['edge'].to(h.device)
@@ -145,20 +147,14 @@ def run_link_pred(args, model, dataset):
 
     evaluator = Evaluator(name=args.dataset)
 
-    g = dataset[0]
+    data = dataset[0]
+    edge_index = data.edge_index
+    data.edge_weight = data.edge_weight.view(-1).to(torch.float)
+    data = T.ToSparseTensor()(data)
 
-    # add reverse edges
-    # srcs, dsts = g.all_edges()
-    # g.add_edges(dsts, srcs)
+    data.full_adj_t = data.adj_t
 
-    # add self-loop
-    # print(f'Total edges before adding self-loop {g.number_of_edges()}')
-    # g = g.remove_self_loop().add_self_loop()
-    # print(f'Total edges after adding self-loop {g.number_of_edges()}')
-
-    g = g.to(device)
-
-    x = g.ndata['feat']
+    data = data.to(device)
 
     split_edge = dataset.get_edge_split()
 
@@ -176,9 +172,9 @@ def run_link_pred(args, model, dataset):
             patience=args.patience, verbose=True, mode='max')
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(model, predictor, g, x, split_edge,
+            loss = train(model, predictor, data, split_edge,
                          optimizer, args.batch_size)
-            result = test(model, predictor, g, x, split_edge,
+            result = test(model, predictor, data, split_edge,
                           evaluator, args.batch_size, dataset.eval_metric)
             logger.add_result(run, result)
 
@@ -221,8 +217,8 @@ def main():
 
     seed_everything(3042)
 
-    dataset = DglLinkPropPredDataset(name=args.dataset, root=args.dataset_path)
-    num_features = dataset[0].ndata['feat'].shape[1]
+    dataset = PygLinkPropPredDataset(name=args.dataset, root=args.dataset_path)
+    num_features = dataset[0].num_features
 
     model = GNN(num_features, args.hidden_channels,
                     args.hidden_channels, args.num_layers,

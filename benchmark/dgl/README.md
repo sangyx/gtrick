@@ -97,3 +97,48 @@
 </table>
 
 * *Run the baseline code: `python node_pred.py --model gcn/sage`*
+
+## Link Property Prediction
+
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-baqh">Dataset</th>
+    <th class="tg-baqh" colspan="2">ogbn-collab</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-baqh">Trick</td>
+    <td class="tg-baqh">GCN</td>
+    <td class="tg-baqh">SAGE</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">—</td>
+    <td class="tg-baqh">0.4718 ± 0.0093</td>
+    <td class="tg-baqh">0.5140 ± 0.0040</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Common Neighbors</td>
+    <td class="tg-baqh">0.5332 ± 0.0019</td>
+    <td class="tg-baqh">0.5370 ± 0.0034</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Resource Allocation</td>
+    <td class="tg-baqh">0.5024 ± 0.0092</td>
+    <td class="tg-baqh">0.4787 ± 0.0060</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Adamic Adar</td>
+    <td class="tg-baqh">0.5283 ± 0.0048</td>
+    <td class="tg-baqh">0.5291 ± 0.0032</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+AnchorDistance</td>
+    <td class="tg-baqh">0.4740 ± 0.0135</td>
+    <td class="tg-baqh">0.4290 ± 0.0107</td>
+  </tr>
+</tbody>
+</table>
+
+* *Run the baseline code: `python link_pred.py --model gcn/sage`*

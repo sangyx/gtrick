@@ -14,6 +14,10 @@ Let's Get Started!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898
 | Random Feature |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/RandomFeature.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/RandomFeature.ipynb) | graph* | [Random Features Strengthen Graph Neural Networks](http://arxiv.org/abs/2002.03155) |
 | Label Propagation |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/LabelProp.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/LabelProp.ipynb) | node* | [Learning from Labeled and Unlabeled Datawith Label Propagation](http://mlg.eng.cam.ac.uk/zoubin/papers/CMU-CALD-02-107.pdf) |
 | Correct & Smooth |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/C&S.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/C&S.ipynb) | node* | [Combining Label Propagation And Simple Models Out-performs Graph Neural Networks](https://arxiv.org/abs/2010.13993) |
+| Common Neighbors |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
+| Resource Allocation |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
+| Adamic Adar |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
+| Anchor Distance |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
 
 
 ## Installation
@@ -84,7 +88,7 @@ The results listed below are implemented by PyG. You can find the results of DGL
 </table>
 
 
-## Node Property Prediction
+### Node Property Prediction
 
 <table class="tg">
 <thead>
@@ -118,6 +122,50 @@ The results listed below are implemented by PyG. You can find the results of DGL
     <td class="tg-baqh">+Correct & Smooth</td>
     <td class="tg-baqh">0.7220 ± 0.0037</td>
     <td class="tg-baqh">0.7264 ± 0.0004</td>
+  </tr>
+</tbody>
+</table>
+
+
+### Link Property Prediction
+
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-baqh">Dataset</th>
+    <th class="tg-baqh" colspan="2">ogbn-collab</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-baqh">Trick</td>
+    <td class="tg-baqh">GCN</td>
+    <td class="tg-baqh">SAGE</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">—</td>
+    <td class="tg-baqh">0.4718 ± 0.0093</td>
+    <td class="tg-baqh">0.5140 ± 0.0040</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Common Neighbors</td>
+    <td class="tg-baqh">0.5332 ± 0.0019</td>
+    <td class="tg-baqh">0.5370 ± 0.0034</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Resource Allocation</td>
+    <td class="tg-baqh">0.5024 ± 0.0092</td>
+    <td class="tg-baqh">0.4787 ± 0.0060</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+Adamic Adar</td>
+    <td class="tg-baqh">0.5283 ± 0.0048</td>
+    <td class="tg-baqh">0.5291 ± 0.0032</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">+AnchorDistance</td>
+    <td class="tg-baqh">0.4740 ± 0.0135</td>
+    <td class="tg-baqh">0.4290 ± 0.0107</td>
   </tr>
 </tbody>
 </table>
