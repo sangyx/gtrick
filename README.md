@@ -1,8 +1,38 @@
 # gtrick: Bag of Tricks for Graph Neural Networks.
 
+- [gtrick: Bag of Tricks for Graph Neural Networks.](#gtrick-bag-of-tricks-for-graph-neural-networks)
+  - [Library Highlights](#library-highlights)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+  - [Trick](#trick)
+  - [Benchmark](#benchmark)
+    - [Graph Property Prediction](#graph-property-prediction)
+    - [Node Property Prediction](#node-property-prediction)
+    - [Link Property Prediction](#link-property-prediction)
+
 gtrick is an easy-to-use Python package collecting tricks for Graph Neural Networks. It tests and provides powerful tricks to boost your models' performance.
 
 Trick is all you need!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
+
+## Library Highlights
+* Easy-to-use: All it takes is to add a few lines of code to apply a powerful trick, with as little changes of existing code as possible.
+* Verified Trick: All tricks implemented in gtrick are tested on our selected datasets. Only the tricks indeed improving model's performance can be collected by gtrick.
+* Backend Free: We provide all tricks both in DGL and PyG. Whatever graph learning library you use, feel free to try it.
+
+## Installation
+
+*Note: This is a developmental release.*
+
+```bash
+pip install gtrick
+```
+
+## Quick Start
+It is very easy to get start with gtrick. You can enhance your GNN model with only a few lines of code.
+
+![quickstart](imgs/quickstart.png)
+
+For more detailed examples, see Example in [Trick](#trick).
 
 ## Trick
 
@@ -19,14 +49,6 @@ Trick is all you need!([Chinese Introduction](https://zhuanlan.zhihu.com/p/50887
 | Adamic Adar |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
 | Anchor Distance |  [DGL](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)<br>[PyG](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb) | link* | [Link Prediction with Structural Information](https://github.com/lustoo/OGB_link_prediction/blob/main/Link%20prediction%20with%20structural%20information.pdf) |
 
-
-## Installation
-
-*Note: This is a developmental release.*
-
-```bash
-pip install gtrick
-```
 
 ## Benchmark
 
