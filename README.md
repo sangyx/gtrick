@@ -1,23 +1,13 @@
 # gtrick: Bag of Tricks for Graph Neural Networks.
 
-- [gtrick: Bag of Tricks for Graph Neural Networks.](#gtrick-bag-of-tricks-for-graph-neural-networks)
-  - [Library Highlights](#library-highlights)
-  - [Installation](#installation)
-  - [Quick Start](#quick-start)
-  - [Trick](#trick)
-  - [Benchmark](#benchmark)
-    - [Graph Property Prediction](#graph-property-prediction)
-    - [Node Property Prediction](#node-property-prediction)
-    - [Link Property Prediction](#link-property-prediction)
-
 gtrick is an easy-to-use Python package collecting tricks for Graph Neural Networks. It tests and provides powerful tricks to boost your models' performance.
 
 Trick is all you need!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
 
 ## Library Highlights
-* Easy-to-use: All it takes is to add a few lines of code to apply a powerful trick, with as little changes of existing code as possible.
-* Verified Trick: All tricks implemented in gtrick are tested on our selected datasets. Only the tricks indeed improving model's performance can be collected by gtrick.
-* Backend Free: We provide all tricks both in DGL and PyG. Whatever graph learning library you use, feel free to try it.
+* **Easy-to-use**: All it takes is to add a few lines of code to apply a powerful trick, with as little changes of existing code as possible.
+* **Verified Trick**: All tricks implemented in gtrick are tested on our selected datasets. Only the tricks indeed improving model's performance can be collected by gtrick.
+* **Backend Free**: We provide all tricks both in [DGL](https://www.dgl.ai/) and [PyG](https://www.pyg.org/). Whatever graph learning library you use, feel free to try it.
 
 ## Installation
 
