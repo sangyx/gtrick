@@ -6,22 +6,31 @@ import torch.nn.functional as F
 
 from torch_geometric.nn import global_add_pool
 
-'''
+"""
 The code are adapted from
 https://github.com/snap-stanford/ogb/tree/master/examples/graphproppred
-'''
+"""
 
 
 class VirtualNode(nn.Module):
+    r"""Virtual Node from [OGB Graph Property Prediction Examples](https://github.com/snap-stanford/ogb/tree/master/examples/graphproppred/mol).
+
+    It adds an virtual node to all nodes in the graph. This trick is helpful for **Graph Level Task**.
+
+    Note:
+        To use this trick, call `update_node_emb` at first, then call `update_vn_emb`.
+
+    Examples:
+        [VirtualNode (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/VirtualNode.ipynb)
+
+    Args:
+        in_feats (int): Feature size before conv layer.
+        out_feats (int): Feature size after conv layer.
+        dropout (float, optional): Dropout rate on virtual node embedding. Default: 0.5.
+        residual (bool, optional): If True, use residual connection. Default: False.
+    """
 
     def __init__(self, in_feats, out_feats, dropout=0.5, residual=False):
-        '''
-            in_feats (int): Feature size before conv layer.
-            out_feats (int): Feature size after conv layer.
-            dropout (float): Dropout rate on virtual node embedding. Defaults: 0.5.
-            residual (bool): If True, use residual connection. Defaults: False.
-        '''
-
         super(VirtualNode, self).__init__()
         self.dropout = dropout
         # Add residual connection or not
@@ -57,6 +66,17 @@ class VirtualNode(nn.Module):
         nn.init.constant_(self.vn_emb.weight.data, 0)
 
     def update_node_emb(self, x, edge_index, batch, vx=None):
+        r""" Add message from virtual nodes to graph nodes.
+        Args:
+            x (torch.Tensor): The input node feature.
+            edge_index (LongTensor): Graph connectivity.
+            batch (LongTensor): Batch vector, which assigns each node to a specific example.
+            vx (torch.Tensor, optional): Optional virtual node embedding. Default: None.
+
+        Returns:
+            (torch.Tensor): The output node feature.
+            (torch.Tensor): The output virtual node embedding.
+        """
         # Virtual node embeddings for graphs
         if vx is None:
             vx = self.vn_emb(torch.zeros(
@@ -67,6 +87,16 @@ class VirtualNode(nn.Module):
         return h, vx
 
     def update_vn_emb(self, x, batch, vx):
+        r""" Add message from graph nodes to virtual node.
+        Args:
+            x (torch.Tensor): The input node feature.
+            batch (LongTensor): Batch vector, which assigns each node to a specific example.
+            vx (torch.Tensor): Optional virtual node embedding.
+
+        Returns:
+            (torch.Tensor): The output virtual node embedding.
+        """
+
         # Add message from graph nodes to virtual nodes
         vx = self.linear(vx)
         vx_temp = global_add_pool(x, batch) + vx

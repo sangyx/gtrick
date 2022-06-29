@@ -1,0 +1,1 @@
+::: gtrick.dgl.LabelPropagation

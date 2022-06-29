@@ -13,60 +13,66 @@ https://github.com/dmlc/dgl/tree/master/examples/pytorch/correct_and_smooth
 
 class CorrectAndSmooth(nn.Module):
     r"""The correct and smooth (C&S) post-processing model from the
-    `"Combining Label Propagation And Simple Models Out-performs Graph Neural
-    Networks"
-    <https://arxiv.org/abs/2010.13993>`_ paper, where soft predictions
-    :math:`\mathbf{Z}` (obtained from a simple base predictor) are
+    ["Combining Label Propagation And Simple Models Out-performs Graph Neural
+    Networks](https://arxiv.org/abs/2010.13993) paper, where soft predictions
+    $\mathbf{Z}$ (obtained from a simple base predictor) are
     first corrected based on ground-truth training
-    label information :math:`\mathbf{Y}` and residual propagation
+    label information $\mathbf{Y}$ and residual propagation
 
-    .. math::
-        \mathbf{e}^{(0)}_i &= \begin{cases}
-            \mathbf{y}_i - \mathbf{z}_i, & \text{if }i
+    $$
+        \mathbf{e}^{(0)}_i = \begin{cases}
+            \mathbf{y}_i - \mathbf{z}_i, \text{if }i
             \text{ is training node,}\\
-            \mathbf{0}, & \text{else}
+            \mathbf{0}, \text{else}
         \end{cases}
+    $$
 
-    .. math::
-        \mathbf{E}^{(\ell)} &= \alpha_1 \mathbf{D}^{-1/2}\mathbf{A}
+    $$
+        \mathbf{E}^{(\ell)} = \alpha_1 \mathbf{D}^{-1/2}\mathbf{A}
         \mathbf{D}^{-1/2} \mathbf{E}^{(\ell - 1)} +
         (1 - \alpha_1) \mathbf{E}^{(\ell - 1)}
+    $$
 
-        \mathbf{\hat{Z}} &= \mathbf{Z} + \gamma \cdot \mathbf{E}^{(L_1)},
+    $$ 
+        \mathbf{\hat{Z}} = \mathbf{Z} + \gamma \cdot \mathbf{E}^{(L_1)} 
+    $$
 
-    where :math:`\gamma` denotes the scaling factor (either fixed or
+    where $\gamma$ denotes the scaling factor (either fixed or
     automatically determined), and then smoothed over the graph via label
     propagation
 
-    .. math::
-        \mathbf{\hat{z}}^{(0)}_i &= \begin{cases}
-            \mathbf{y}_i, & \text{if }i\text{ is training node,}\\
-            \mathbf{\hat{z}}_i, & \text{else}
+    $$
+        \mathbf{\hat{z}}^{(0)}_i = \begin{cases}
+            \mathbf{y}_i, \text{if }i\text{ is training node,}\\
+            \mathbf{\hat{z}}_i, \text{else}
         \end{cases}
+    $$
 
-    .. math::
+    $$
         \mathbf{\hat{Z}}^{(\ell)} = \alpha_2 \mathbf{D}^{-1/2}\mathbf{A}
         \mathbf{D}^{-1/2} \mathbf{\hat{Z}}^{(\ell - 1)} +
         (1 - \alpha_1) \mathbf{\hat{Z}}^{(\ell - 1)}
+    $$
 
-    to obtain the final prediction :math:`\mathbf{\hat{Z}}^{(L_2)}`.
+    to obtain the final prediction $\mathbf{\hat{Z}}^{(L_2)}$. 
+    
+    This trick is helpful for **Node Level Task**.
 
-    .. note::
+    Note:
+        To use this trick, call `correct` at first, then call `smooth`.
 
-        For an example of using the C&S model, see
-        `examples/correct_and_smooth.py
-        <https://github.com/pyg-team/pytorch_geometric/blob/master/examples/
-        correct_and_smooth.py>`_.
+    Examples: 
+        [CorrectAndSmooth (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/C&S.ipynb)
 
     Args:
-        num_correction_layers (int): The number of propagations :math:`L_1`.
-        correction_alpha (float): The :math:`\alpha_1` coefficient.
-        num_smoothing_layers (int): The number of propagations :math:`L_2`.
-        smoothing_alpha (float): The :math:`\alpha_2` coefficient.
-        autoscale (bool, optional): If set to :obj:`True`, will automatically
-            determine the scaling factor :math:`\gamma`. (default: :obj:`True`)
-        scale (float, optional): The scaling factor :math:`\gamma`, in case
-            :obj:`autoscale = False`. (default: :obj:`1.0`)
+        num_correction_layers (int): The number of propagations $L_1$.
+        correction_alpha (float): The $\alpha_1$ coefficient.
+        num_smoothing_layers (int): The number of propagations $L_2$.
+        smoothing_alpha (float): The $\alpha_2$ coefficient.
+        autoscale (bool, optional): If set to `True`, will automatically
+            determine the scaling factor $\gamma$. Default: True.
+        scale (float, optional): The scaling factor $\gamma$, in case
+            `autoscale = False`. Default: 1.0.
     """
     def __init__(self,
                  num_correction_layers,
@@ -88,6 +94,22 @@ class CorrectAndSmooth(nn.Module):
                                       )
 
     def correct(self, graph, y_soft, y_true, mask, edge_weight=None):
+        r"""
+        Args:
+            graph (dgl.DGLGraph): The graph.
+            y_soft (Tensor): The soft predictions $\mathbf{Z}$ obtained
+                from a simple base predictor.
+            y_true (Tensor): The ground-truth label information
+                $\mathbf{Y}$ of training nodes.
+            mask (LongTensor or BoolTensor): A mask or index tensor denoting
+                which nodes were used for training.
+            edge_weight (Tensor, optional): The edge weights.
+                Default: None.
+        
+        Returns:
+            (torch.Tensor): The corrected prediction.
+        """
+
         with graph.local_scope():
             assert abs(float(y_soft.sum()) / y_soft.size(0) - 1.0) < 1e-2
 
@@ -122,6 +144,22 @@ class CorrectAndSmooth(nn.Module):
                 return result
 
     def smooth(self, graph, y_soft, y_true, mask, edge_weight=None):
+        r"""
+        Args:
+            graph (dgl.DGLGraph): The graph.
+            y_soft (Tensor): The soft predictions $\mathbf{Z}$ obtained
+                from a simple base predictor.
+            y_true (Tensor): The ground-truth label information
+                $\mathbf{Y}$ of training nodes.
+            mask (LongTensor or BoolTensor): A mask or index tensor denoting
+                which nodes were used for training.
+            edge_weight (Tensor, optional): The edge weights.
+                Default: None.
+        
+        Returns:
+            (torch.Tensor): The final prediction.
+        """
+
         with graph.local_scope():
             numel = int(mask.sum()) if mask.dtype == torch.bool else mask.size(0)
             assert y_true.size(0) == numel
