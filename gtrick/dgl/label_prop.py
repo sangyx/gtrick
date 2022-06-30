@@ -42,9 +42,9 @@ class LabelPropagation(nn.Module):
         Args:
             graph (dgl.DGLGraph): The graph.
             y (torch.Tensor): The ground-truth label information of training nodes.
-            mask (torch.LongTensor or BoolTensor): A mask or index tensor denoting which nodes were used for training. Default: None
-            edge_weight (torch.Tensor, optional): The edge weights. Default: None
-            post_step (Callable[[torch.Tensor], torch.Tensor]): The post-process function. Default: lambda y: y.clamp_(0., 1.).
+            mask (torch.LongTensor or BoolTensor): A mask or index tensor denoting which nodes were used for training. 
+            edge_weight (torch.Tensor, optional): The edge weights. 
+            post_step (Callable[[torch.Tensor], torch.Tensor]): The post-process function.
 
         Returns:
             (torch.Tensor): The obtained prediction.

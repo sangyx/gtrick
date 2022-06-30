@@ -26,8 +26,8 @@ class VirtualNode(nn.Module):
     Args:
         in_feats (int): Feature size before conv layer.
         out_feats (int): Feature size after conv layer.
-        dropout (float, optional): Dropout rate on virtual node embedding. Default: 0.5.
-        residual (bool, optional): If True, use residual connection. Default: False.
+        dropout (float, optional): Dropout rate on virtual node embedding.
+        residual (bool, optional): If True, use residual connection.
     """
 
     def __init__(self, in_feats, out_feats, dropout=0.5, residual=False):
@@ -69,9 +69,9 @@ class VirtualNode(nn.Module):
         r""" Add message from virtual nodes to graph nodes.
         Args:
             x (torch.Tensor): The input node feature.
-            edge_index (LongTensor): Graph connectivity.
-            batch (LongTensor): Batch vector, which assigns each node to a specific example.
-            vx (torch.Tensor, optional): Optional virtual node embedding. Default: None.
+            edge_index (torch.LongTensor): Graph connectivity.
+            batch (torch.LongTensor): Batch vector, which assigns each node to a specific example.
+            vx (torch.Tensor, optional): Optional virtual node embedding.
 
         Returns:
             (torch.Tensor): The output node feature.

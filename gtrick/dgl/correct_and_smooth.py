@@ -70,9 +70,9 @@ class CorrectAndSmooth(nn.Module):
         num_smoothing_layers (int): The number of propagations $L_2$.
         smoothing_alpha (float): The $\alpha_2$ coefficient.
         autoscale (bool, optional): If set to `True`, will automatically
-            determine the scaling factor $\gamma$. Default: True.
+            determine the scaling factor $\gamma$.
         scale (float, optional): The scaling factor $\gamma$, in case
-            `autoscale = False`. Default: 1.0.
+            `autoscale = False`.
     """
     def __init__(self,
                  num_correction_layers,
@@ -104,7 +104,6 @@ class CorrectAndSmooth(nn.Module):
             mask (LongTensor or BoolTensor): A mask or index tensor denoting
                 which nodes were used for training.
             edge_weight (Tensor, optional): The edge weights.
-                Default: None.
         
         Returns:
             (torch.Tensor): The corrected prediction.
@@ -154,7 +153,6 @@ class CorrectAndSmooth(nn.Module):
             mask (LongTensor or BoolTensor): A mask or index tensor denoting
                 which nodes were used for training.
             edge_weight (Tensor, optional): The edge weights.
-                Default: None.
         
         Returns:
             (torch.Tensor): The final prediction.

@@ -6,13 +6,19 @@ nav:
       - gtrick.pyg:
           - VirtualNode: pyg/virtual_node.md
           - FLAG: pyg/flag.md
+          - Fingerprint: pyg/fingerprint.md
+          - RandomFeature: pyg/random_feature.md
           - LabelPropagation: pyg/label_prop.md
           - CorrectAndSmooth: pyg/correct_and_smooth.md
+          - Edge Feature: pyg/edge_feat.md    
       - gtrick.dgl:
           - VirtualNode: dgl/virtual_node.md
           - FLAG: pyg/flag.md
+          - Fingerprint: pyg/fingerprint.md
+          - RandomFeature: pyg/random_feature.md
           - LabelPropagation: dgl/label_prop.md
           - CorrectAndSmooth: dgl/correct_and_smooth.md
+          - Edge Feature: dgl/edge_feat.md 
   - Benchmark: 
       - PyG: benchmark/pyg.md
       - DGL: benchmark/dgl.md

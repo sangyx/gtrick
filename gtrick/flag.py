@@ -21,9 +21,9 @@ class FLAG:
         emb_dim (int): Node feature dim.
         loss_func (torch.nn.Module): Loss function.
         optimizer (torch.optim.Optimizer) : Optimizer.
-        m (int): Ascent steps. Train the same minibatch m times. Default: 3.
-        step_size (float): Ascent step size. If mag <= 0, perturb is initialized from uniform distribution [-step_size, step_size]. Default: 1e-3.
-        mag (float): If mag > 0, it controls the max norm of perturb. Default: -1.
+        m (int): Ascent steps. Train the same minibatch m times.
+        step_size (float): Ascent step size. If mag <= 0, perturb is initialized from uniform distribution [-step_size, step_size].
+        mag (float): If mag > 0, it controls the max norm of perturb.
 
     """
 
@@ -41,7 +41,7 @@ class FLAG:
         Args:
             model (torch.nn.Module): The model.
             forward (Callable[[torch.Tensor], torch.Tensor]): The function that inputs perturb and gets output.
-            num_nodes (int) : The number of nodes.
+            num_nodes (int): The number of nodes.
             y (torch.Tensor): The ground truth label.
         
         Returns:

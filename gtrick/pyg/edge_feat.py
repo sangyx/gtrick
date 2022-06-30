@@ -16,7 +16,18 @@ https://github.com/lustoo/OGB_link_prediction
 '''
 
 
-class CommonNeighbors:
+class CommonNeighbors(object):
+    r"""Compute the common neighbors of two nodes in a graph.
+
+    Example:
+        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+
+    Args:
+        edge_index (torch.LongTensor): Graph connectivity.
+        edge_attr (torch.Tensor, optional): Edge feature. 
+        batch_size (int, optional): The batch size to compute common neighbors. 
+    """
+
     def __init__(self, edge_index, edge_attr=None, batch_size=64) -> None:
         if edge_attr is None:
             edge_attr = torch.ones(edge_index.shape[1])
@@ -28,6 +39,13 @@ class CommonNeighbors:
         self.batch_size = batch_size
 
     def __call__(self, edges):
+        r"""
+        Args:
+            edges (torch.Tensor): The edges with the shape (num_edges, 2).
+        
+        Returns:
+            (torch.Tensor): The calculated common neighbors feature.
+        """
         idx_loader = DataLoader(range(edges.shape[0]), self.batch_size)
         cn = []
 
@@ -41,7 +59,26 @@ class CommonNeighbors:
         return cn.view(-1, 1)
 
 
-class ResourceAllocation:
+class ResourceAllocation(object):
+    r"""Compute the resource allocation of two nodes in a graph.
+
+    Resource allocation of $u$ and $v$ is defined as
+
+    $$
+    \sum_{w \in \Gamma(u) \cap \Gamma(v)} \frac{1}{|\Gamma(w)|}
+    $$
+    
+    where $\Gamma(u)$ denotes the set of neighbors of $u$.
+
+    Example:
+        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+
+    Args:
+        edge_index (torch.LongTensor): Graph connectivity.
+        edge_attr (torch.Tensor, optional): Edge feature.
+        batch_size (int, optional): The batch size to compute common neighbors.
+    """
+
     def __init__(self, edge_index, edge_attr=None, batch_size=64) -> None:
         if edge_attr is None:
             edge_attr = torch.ones(edge_index.shape[1])
@@ -56,6 +93,13 @@ class ResourceAllocation:
         self.batch_size = batch_size
 
     def __call__(self, edges):
+        r"""
+        Args:
+            edges (torch.Tensor): The edges with the shape (num_edges, 2).
+        
+        Returns:
+            (torch.Tensor): The calculated resource allocation feature.
+        """
         idx_loader = DataLoader(range(edges.shape[0]), self.batch_size)
 
         ra = []
@@ -70,7 +114,26 @@ class ResourceAllocation:
         return ra.view(-1, 1)
 
 
-class AdamicAdar:
+class AdamicAdar(object):
+    r"""Computes the adamic adar of two nodes in a graph.
+
+    Adamic-Adar index of $u$ and $v$ is defined as
+
+    $$
+    \sum_{w \in \Gamma(u) \cap \Gamma(v)} \frac{1}{\log |\Gamma(w)|}
+    $$
+ 
+    where $\Gamma(u)$ denotes the set of neighbors of $u$. This index leads to zero-division for nodes only connected via self-loops. It is intended to be used when no self-loops are present.
+
+    Example:
+        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+
+    Args:
+        edge_index (torch.LongTensor): Graph connectivity.
+        edge_attr (torch.Tensor, optional): Edge feature.
+        batch_size (int, optional): The batch size to compute common neighbors.
+    """
+
     def __init__(self, edge_index, edge_attr=None, batch_size=64) -> None:
         if edge_attr is None:
             edge_attr = torch.ones(edge_index.shape[1])
@@ -86,6 +149,13 @@ class AdamicAdar:
         self.batch_size = batch_size
 
     def __call__(self, edges=None):
+        r"""
+        Args:
+            edges (torch.Tensor): The edges with the shape (num_edges, 2).
+        
+        Returns:
+            (torch.Tensor): The calculated adamic adar feature.
+        """
         idx_loader = DataLoader(range(edges.shape[0]), self.batch_size)
 
         aa = []
@@ -100,7 +170,29 @@ class AdamicAdar:
         return aa.view(-1, 1)
 
 
-class AnchorDistance:
+class AnchorDistance(object):
+    r"""Computes the anchor distance of two nodes in a graph.
+
+    The anchor distance randomly selects $k_a$ nodes from $V$ to be anchor nodes and then calculates the shortest path starting from these anchor nodes to any other nodes. After that, the distance between $u$ and $v$ can be estimated by:
+
+    $$
+    d_{u, v}=\frac{1}{K_{A}} \sum_{i=1}^{K_{A}} d_{u, a_{i}}+d_{v, a_{i}}
+    $$
+
+    To reduce the randomness, it uses $k$ anchor sets to generate multiple distance features.
+
+    Example:
+        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+
+    Args:
+        data (torch_geometric.data.Data): Graph data.
+        num_samples (int): The number of times to sample anchor sets.
+        k (int): The size of sampled anchor sets.
+        ka (int): The number of anchor nodes.
+        max_spd (int, optional): The max shortest distance.
+        to_undirected (bool, optional): Converts the graph to an undirected graph.
+    """
+
     def __init__(self, data, num_samples, k, ka, max_spd=5, to_undirected=True):
         self.node_subset = random.sample(range(data.num_nodes), k)
 
@@ -126,6 +218,13 @@ class AnchorDistance:
         return spd_matrix
 
     def __call__(self, edges):
+        r"""
+        Args:
+            edges (torch.Tensor): The edges with the shape (num_edges, 2).
+        
+        Returns:
+            (torch.Tensor): The calculated anchor distance feature.
+        """
         edges = edges.T
         ad = self.spd[edges, :].mean(0)[:, self.node_mask].mean(2)
 
