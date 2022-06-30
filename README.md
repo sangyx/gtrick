@@ -2,7 +2,7 @@
 
 gtrick is an easy-to-use Python package collecting tricks for Graph Neural Networks. It tests and provides powerful tricks to boost your models' performance.
 
-Trick is all you need!([Chinese Introduction](https://zhuanlan.zhihu.com/p/508876898))
+Trick is all you need! ([English Document](https://sangyx.com/gtrick/) | [中文介绍](https://zhuanlan.zhihu.com/p/508876898))
 
 ## Library Highlights
 * **Easy-to-use**: All it takes is to add a few lines of code to apply a powerful trick, with as little changes of existing code as possible.

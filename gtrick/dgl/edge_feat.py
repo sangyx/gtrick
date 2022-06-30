@@ -19,7 +19,7 @@ class CommonNeighbors:
     r"""Compute the common neighbors of two nodes in a graph.
 
     Example:
-        [EdgeFeat (dgl)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)
+        [EdgeFeat (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)
 
     Args:
         adj (SparseTensor): Adjacency matrix.
@@ -73,7 +73,7 @@ class ResourceAllocation(object):
     where $\Gamma(u)$ denotes the set of neighbors of $u$.
 
     Example:
-        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+        [EdgeFeat (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)
 
     Args:
         adj (SparseTensor): Adjacency matrix.
@@ -131,7 +131,7 @@ class AdamicAdar(object):
     where $\Gamma(u)$ denotes the set of neighbors of $u$. This index leads to zero-division for nodes only connected via self-loops. It is intended to be used when no self-loops are present.
 
     Example:
-        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+        [EdgeFeat (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)
 
     Args:
         adj (SparseTensor): Adjacency matrix.
@@ -190,7 +190,7 @@ class AnchorDistance(object):
     To reduce the randomness, it uses $k$ anchor sets to generate multiple distance features.
 
     Example:
-        [EdgeFeat (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/EdgeFeat.ipynb)
+        [EdgeFeat (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/EdgeFeat.ipynb)
 
     Args:
         g (dgl.DGLGraph): Graph data.
