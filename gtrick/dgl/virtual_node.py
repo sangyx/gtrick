@@ -7,22 +7,31 @@ import torch.nn.functional as F
 
 from dgl.nn import SumPooling
 
-'''
+"""
 The code are adapted from
 https://github.com/dmlc/dgl/tree/master/examples/pytorch/ogb_lsc/PCQM4M
-'''
+"""
 
 
 class VirtualNode(nn.Module):
+    r"""Virtual Node from [OGB Graph Property Prediction Examples](https://github.com/snap-stanford/ogb/tree/master/examples/graphproppred/mol).
+
+    It adds an virtual node to all nodes in the graph. This trick is helpful for **Graph Level Task**.
+
+    Note:
+        To use this trick, call `update_node_emb` at first, then call `update_vn_emb`.
+
+    Examples:
+        [VirtualNode (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/VirtualNode.ipynb)
+
+    Args:
+        in_feats (int): Feature size before conv layer.
+        out_feats (int): Feature size after conv layer.
+        dropout (float, optional): Dropout rate on virtual node embedding. Default: 0.5.
+        residual (bool, optional): If True, use residual connection. Default: False.
+    """
 
     def __init__(self, in_feats, out_feats, dropout=0.5, residual=False):
-        '''
-            in_feats (int): Feature size before conv layer.
-            out_feats (int): Feature size after conv layer.
-            dropout (float): Dropout rate on virtual node embedding. Defaults: 0.5.
-            residual (bool): If True, use residual connection. Defaults: False.
-        '''
-
         super(VirtualNode).__init__()
         self.dropout = dropout
         # Add residual connection or not
@@ -59,15 +68,26 @@ class VirtualNode(nn.Module):
                 c.reset_parameters()
         nn.init.constant_(self.vn_emb.weight.data, 0)
 
-    def update_node_emb(self, g, x, vx=None):
+    def update_node_emb(self, graph, x, vx=None):
+        r""" Add message from virtual nodes to graph nodes.
+        Args:
+            graph (dgl.DGLGraph): The graph.
+            x (torch.Tensor): The input node feature.
+            vx (torch.Tensor, optional): Optional virtual node embedding. Default: None.
+
+        Returns:
+            (torch.Tensor): The output node feature.
+            (torch.Tensor): The output virtual node embedding.
+        """
+
         # Virtual node embeddings for graphs
         if vx is None:
             vx = self.vn_emb(
-                torch.zeros(g.batch_size).long().to(x.device))
+                torch.zeros(graph.batch_size).long().to(x.device))
 
-        if g.batch_size > 1:
-            batch_id = dgl.broadcast_nodes(g, torch.arange(
-                g.batch_size).to(x.device).view(g.batch_size, -1)).flatten()
+        if graph.batch_size > 1:
+            batch_id = dgl.broadcast_nodes(graph, torch.arange(
+                graph.batch_size).to(x.device).view(graph.batch_size, -1)).flatten()
         else:
             batch_id = 0
 
@@ -75,10 +95,20 @@ class VirtualNode(nn.Module):
         h = x + vx[batch_id]
         return h, vx
 
-    def update_vn_emb(self, g, x, vx):
+    def update_vn_emb(self, graph, x, vx):
+        r""" Add message from graph nodes to virtual node.
+        Args:
+            graph (dgl.DGLGraph): The graph.
+            x (torch.Tensor): The input node feature.
+            vx (torch.Tensor): Optional virtual node embedding.
+
+        Returns:
+            (torch.Tensor): The output virtual node embedding.
+        """
+
         # Add message from graph nodes to virtual nodes
         vx = self.linear(vx)
-        vx_temp = self.pool(g, x) + vx
+        vx_temp = self.pool(graph, x) + vx
 
         # transform virtual nodes using MLP
         vx_temp = self.mlp_vn(vx_temp)

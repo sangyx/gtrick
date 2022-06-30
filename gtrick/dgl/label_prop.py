@@ -5,25 +5,30 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
 
-'''
+"""
 The code are adapted from
 https://github.com/dmlc/dgl/tree/master/examples/pytorch/label_propagation
-'''
+"""
 
 class LabelPropagation(nn.Module):
-    r"""The label propagation operator from the `"Learning from Labeled and
-    Unlabeled Datawith Label Propagation"
-    <http://mlg.eng.cam.ac.uk/zoubin/papers/CMU-CALD-02-107.pdf>`_ paper
+    r"""The label propagation operator from the ["Learning from Labeled and
+    Unlabeled Datawith Label Propagation"](http://mlg.eng.cam.ac.uk/zoubin/papers/CMU-CALD-02-107.pdf) paper.
 
-    .. math::
+    This trick is helpful for **Node Level Task**.
+
+    $$
         \mathbf{Y}^{\prime} = \alpha \cdot \mathbf{D}^{-1/2} \mathbf{A}
-        \mathbf{D}^{-1/2} \mathbf{Y} + (1 - \alpha) \mathbf{Y},
+        \mathbf{D}^{-1/2} \mathbf{Y} + (1 - \\alpha) \mathbf{Y},
+    $$
 
     where unlabeled data is inferred by labeled data via propagation.
 
+    Examples:
+        [LabelPropagation (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/LabelProp.ipynb)
+
     Args:
         num_layers (int): The number of propagations.
-        alpha (float): The :math:`\alpha` coefficient.
+        alpha (float): The $\alpha$ coefficient.
     """
     def __init__(self, num_layers, alpha):
         super(LabelPropagation, self).__init__()
@@ -33,6 +38,17 @@ class LabelPropagation(nn.Module):
     
     @torch.no_grad()
     def forward(self, graph, y, mask=None, edge_weight=None, post_step=lambda y: y.clamp_(0., 1.)):
+        r"""
+        Args:
+            graph (dgl.DGLGraph): The graph.
+            y (torch.Tensor): The ground-truth label information of training nodes.
+            mask (torch.LongTensor or BoolTensor): A mask or index tensor denoting which nodes were used for training. 
+            edge_weight (torch.Tensor, optional): The edge weights. 
+            post_step (Callable[[torch.Tensor], torch.Tensor]): The post-process function.
+
+        Returns:
+            (torch.Tensor): The obtained prediction.
+        """
         with graph.local_scope():
             if y.dtype == torch.long:
                 y = F.one_hot(y.view(-1)).to(torch.float32)

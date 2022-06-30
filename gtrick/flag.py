@@ -3,21 +3,31 @@
 import torch
 import math
 
-'''
+"""
 The code are adapted from
 https://github.com/devnkong/FLAG
-'''
+"""
 
 class FLAG:
+    r"""FLAG is an adversarial data augmentation method for Graph Neural Networks, which comes from
+    [Robust Optimization as Data Augmentation for Large-scale Graphs](https://arxiv.org/abs/2010.09891).
+
+    This trick is helpful for **Node Level Task** and **Graph Level Task**.
+
+    Example:
+        [FLAG (DGL)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/dgl/FLAG.ipynb), [FALG (PyG)](https://nbviewer.org/github/sangyx/gtrick/blob/main/benchmark/pyg/FLAG.ipynb)
+
+    Args:
+        emb_dim (int): Node feature dim.
+        loss_func (torch.nn.Module): Loss function.
+        optimizer (torch.optim.Optimizer) : Optimizer.
+        m (int): Ascent steps. Train the same minibatch m times.
+        step_size (float): Ascent step size. If mag <= 0, perturb is initialized from uniform distribution [-step_size, step_size].
+        mag (float): If mag > 0, it controls the max norm of perturb.
+
+    """
+
     def __init__(self, emb_dim, loss_func, optimizer, m=3, step_size=1e-3, mag=-1) -> None:
-        '''
-            emb_dim (int): Node feature dim.
-            loss_func (torch.nn.Module): Loss function.
-            optimizer (torch.optim.Optimizer) : Optimizer.
-            m (int): Ascent steps. Train the same minibatch m times. Defaults: 3.
-            step_size (float): Ascent step size. If mag <= 0, perturb is initialized from uniform distribution [-step_size, step_size]. Defaults: 1e-3.
-            mag (float): If mag > 0, it controls the max norm of perturb. Defaults: -1.
-        '''
 
         self.emb_dim = emb_dim
         self.loss_func = loss_func
@@ -27,6 +37,18 @@ class FLAG:
         self.mag = mag
 
     def __call__(self, model, forward, num_nodes, y):
+        r"""
+        Args:
+            model (torch.nn.Module): The model.
+            forward (Callable[[torch.Tensor], torch.Tensor]): The function that inputs perturb and gets output.
+            num_nodes (int): The number of nodes.
+            y (torch.Tensor): The ground truth label.
+        
+        Returns:
+            (torch.Tensor): The loss.
+            (torch.Tensor): The output of the model.
+        """
+
         model.train()
         self.optimizer.zero_grad()
 
