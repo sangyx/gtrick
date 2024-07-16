@@ -100,7 +100,7 @@ def run_graph_pred(args, model, dataset):
     for run in range(args.runs):
         print('\nRun {}'.format(run + 1))
         model.reset_parameters()
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
         if args.dataset == 'ogbg-molhiv':
             loss_func = F.binary_cross_entropy_with_logits
@@ -150,9 +150,12 @@ def main():
     parser.add_argument('--device', type=int, default=1)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--num_layers', type=int, default=5)
+    parser.add_argument('--pooling_type', type=str, default='mean')
+    parser.add_argument('--use_mlp_after_graph_embed', action='store_true', default=False)
     parser.add_argument('--hidden_channels', type=int, default=300)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--weight_decay', type=float, default=0)
     parser.add_argument('--batch_size', type=int, default=32,
                         help='batch size')
     parser.add_argument('--num_workers', type=int, default=0,
@@ -170,15 +173,18 @@ def main():
 
         model = EGNN(args.hidden_channels,
                      dataset.num_tasks, args.num_layers,
-                     args.dropout, args.model, mol=True)
+                     args.dropout, args.model, mol=True, pooling_type=args.pooling_type, use_mlp_after_graph_embed=args.use_mlp_after_graph_embed)
     elif args.dataset == 'ogbg-ppa':
         dataset = PygGraphPropPredDataset(
         name=args.dataset, root=args.dataset_path, transform=add_zeros)
 
         model = EGNN(args.hidden_channels,
                      int(dataset.num_classes), args.num_layers,
-                     args.dropout, args.model)
+                     args.dropout, args.model, pooling_type=args.pooling_type, use_mlp_after_graph_embed=args.use_mlp_after_graph_embed)
 
+    # parameter count for ogb submission
+    print(f"model parameter count: {sum(p.numel() for p in model.parameters())}")
+    print(f"model:{model}")
     run_graph_pred(args, model, dataset)
 
 
