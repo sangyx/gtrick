@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
-from torch_geometric.nn import global_mean_pool, GCNConv, SAGEConv
+from torch_geometric.nn import global_mean_pool, global_add_pool, GCNConv, SAGEConv
 from torch_geometric.utils import degree
 
 from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
@@ -102,7 +102,7 @@ class EGCNConv(MessagePassing):
 class EGNN(nn.Module):
 
     def __init__(self, hidden_channels, out_channels, num_layers,
-                 dropout, conv_type, mol=False):
+                 dropout, conv_type, mol=False, pooling_type='mean', use_mlp_after_graph_embed=False):
 
         super(EGNN, self).__init__()
 
@@ -130,6 +130,17 @@ class EGNN(nn.Module):
 
         self.dropout = dropout
 
+        if pooling_type == 'mean':
+            self.pool = global_mean_pool
+        elif pooling_type == 'add':
+            self.pool = global_add_pool
+        else:
+            raise Exception(f"Invalid pooling type: {pooling_type}; only 'mean' and 'add' supported")
+
+        self.use_mlp_after_graph_embed = use_mlp_after_graph_embed
+        if self.use_mlp_after_graph_embed:
+            self.graph_embed_hidden = nn.Linear(hidden_channels, hidden_channels)
+
         self.out = nn.Linear(hidden_channels, out_channels)
 
     def reset_parameters(self):
@@ -144,6 +155,8 @@ class EGNN(nn.Module):
             self.bns[i].reset_parameters()
 
         self.out.reset_parameters()
+        if self.use_mlp_after_graph_embed:
+            self.graph_embed_hidden.reset_parameters()
 
     def forward(self, batch_data):
         x, edge_index, edge_attr, batch = batch_data.x, batch_data.edge_index, batch_data.edge_attr, batch_data.batch
@@ -164,7 +177,15 @@ class EGNN(nn.Module):
 
         h = F.dropout(h, self.dropout, training=self.training)
 
-        h = global_mean_pool(h, batch)
+        h = self.pool(h, batch)
+
+        # do not require graph embeddings to be linearly separable
+        # graph embeds from raw pooling of node embeds may not be
+        if self.use_mlp_after_graph_embed:
+            h = F.dropout(h, self.dropout, training=self.training)
+            h = self.graph_embed_hidden(h)
+            h = F.relu(h)
+            h = F.dropout(h, self.dropout, training=self.training)
 
         h = self.out(h)
 
